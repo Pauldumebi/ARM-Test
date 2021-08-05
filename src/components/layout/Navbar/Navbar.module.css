@@ -1,0 +1,17 @@
+.Nav {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 1rem 5rem;
+	border-top: 10px solid #faa900;
+	border-bottom: 1px solid #aaa;
+}
+
+.Logo {
+	height: 3rem;
+}
+
+.Nav ul {
+	list-style: none;
+	display: flex;
+}
