@@ -5,6 +5,14 @@
 	padding: 1rem 5rem;
 	border-top: 10px solid #faa900;
 	border-bottom: 1px solid #aaa;
+	background-color: #fff;
+}
+
+.Fixed {
+	position: fixed;
+	top: 0;
+	right: 0;
+	left: 0;
 }
 
 .Logo {
