@@ -1,0 +1,60 @@
+.CourseCard {
+	display: flex;
+	flex-direction: column;
+	width: 30%;
+	font-family: Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+	padding: 10px;
+	border: 1px solid gray;
+	border-radius: 3px;
+}
+
+.CourseCardImage {
+	width: 100%;
+	margin-bottom: 10px;
+}
+
+.CourseCardImage img {
+	width: 100%;
+	object-fit: cover;
+}
+
+.Title {
+	font-size: 18px;
+	margin: 5px 0;
+}
+
+.Desc {
+	font-size: 12px;
+	margin-bottom: 5px;
+	line-height: 1.5;
+}
+
+.Price {
+	font-weight: 700;
+	font-size: 14px;
+	background-color: rgb(196, 196, 10);
+	padding: 5px 10px;
+	width: max-content;
+}
+
+.PriceBox {
+	display: flex;
+	justify-content: space-between;
+	margin: 1rem 0;
+}
+
+.Button {
+	font-family: inherit;
+	width: 100%;
+	border: none;
+	outline: none;
+	padding: 8px 36px;
+	background-color: #7500fa;
+	font-size: 18px;
+	color: #fff;
+	font-weight: 700;
+	margin-top: 1rem;
+	border-radius: 3px;
+	cursor: pointer;
+	text-transform: capitalize;
+}
