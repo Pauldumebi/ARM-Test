@@ -92,3 +92,25 @@
 	width: 50%;
 	font-family: Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
+
+.ModalContent {
+	background-color: #fff;
+	padding: 3rem;
+	border-radius: 3px;
+	text-align: center;
+	font-family: Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.ModalContent h6 {
+	font-family: Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+	font-size: 16px;
+	margin-bottom: 5px;
+	text-align: center;
+	font-weight: 400;
+}
+
+.ModalContent .Link {
+	color: #faa600;
+	text-decoration: none;
+	font-weight: 700;
+}

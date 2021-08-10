@@ -1,7 +1,13 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import CourseCard from '../../layout/CourseCard/CourseCard';
+import Modal from '../../layout/Modal/Modal';
 import classes from './Courses.module.css';
 
 const Courses = () => {
+	const checkAuth = () => false;
+	const [showModal, setShowModal] = useState(false);
+
 	return (
 		<section className={classes.Courses}>
 			<div>
@@ -19,7 +25,9 @@ const Courses = () => {
 							<p className={classes.Price}>Free</p>
 							<p className={classes.Stars}>5 star rating</p>
 						</div>
-						<button className={classes.Btn}>Enroll Now</button>
+						<button className={classes.Btn} onClick={() => setShowModal(true)}>
+							Enroll Now
+						</button>
 					</div>
 					<div className={classes.FeaturedCourseImage}>
 						<img src="../../../images/reactredux.jpeg" alt="Modern React" />
@@ -50,7 +58,7 @@ const Courses = () => {
 				<div className={classes.Filters}>
 					<h5>Filter By</h5>
 					<div>
-						<input type="radio" name="filters" id="all" value="all" checked />
+						<input type="radio" name="filters" id="all" value="all" />
 						<label htmlFor="all">All</label>
 					</div>
 					<div>
@@ -81,6 +89,25 @@ const Courses = () => {
 					/>
 				</div>
 			</div>
+			{showModal && (
+				<Modal hideModal={() => setShowModal(false)}>
+					<div className={classes.ModalContent} onClick={() => setShowModal(false)}>
+						<h6>
+							You are not logged in!{' '}
+							<Link to="/login" className={classes.Link}>
+								Log In
+							</Link>
+						</h6>
+
+						<h6>
+							New User?{' '}
+							<Link to="/signup" className={classes.Link}>
+								Sign Up Here
+							</Link>
+						</h6>
+					</div>
+				</Modal>
+			)}
 		</section>
 	);
 };
