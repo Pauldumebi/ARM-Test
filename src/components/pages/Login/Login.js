@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import classes from './Login.module.css';
 
 const LoginPage = () => {
@@ -25,6 +26,12 @@ const LoginPage = () => {
 				/>
 			</div>
 			<button>Log In</button>
+			<p>
+				Don't have an account yet?{' '}
+				<Link to="/signup" className={classes.Link}>
+					Sign Up Here
+				</Link>
+			</p>
 		</form>
 	);
 };
