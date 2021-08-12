@@ -5,7 +5,7 @@ import Modal from '../../layout/Modal/Modal';
 import classes from './Courses.module.css';
 
 const Courses = () => {
-	const checkAuth = () => false;
+	// const checkAuth = () => false;
 	const [showModal, setShowModal] = useState(false);
 
 	return (
