@@ -14,7 +14,9 @@ const Overview = () => {
 						<p>Learn React by building real-world applications.</p>
 					</div>
 					{/* <p>4.7 star</p> */}
-					<Link className={classes.Link}>view course</Link>
+					<Link to="/" className={classes.Link}>
+						view course
+					</Link>
 				</div>
 			</div>
 		</section>

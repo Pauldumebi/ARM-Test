@@ -6,7 +6,7 @@ import axios from 'axios';
 const LoginPage = () => {
 	const { handleSubmit, register, formState } = useForm();
 	const { errors } = formState;
-	console.log(errors);
+
 	const history = useHistory();
 
 	const onLoginFormSubmit = (data) => {
@@ -19,15 +19,19 @@ const LoginPage = () => {
 			)
 			.then((res) => {
 				console.log(res);
-				localStorage.setItem('ccAuth', true);
+				const userInfo = JSON.stringify({
+					firstName: res.data.userData.firstname,
+					role: res.data.userData.role,
+				});
+				localStorage.setItem('ccAuth', userInfo);
 				history.push('/overview');
 			})
 			.catch((err) => console.log(err));
-		console.log(myFormData);
+
 		// alert(JSON.stringify(data));
 	};
 	return (
-		<form className={classes.Form} onSubmit={handleSubmit(onLoginFormSubmit)}>
+		<form className={classes.Form} onSubmit={handleSubmit(onLoginFormSubmit)} autoComplete="off">
 			<div className={classes.InputBox}>
 				<label htmlFor="email">Email</label>
 				<input
@@ -36,6 +40,7 @@ const LoginPage = () => {
 					id="email"
 					placeholder="johndon@example.com"
 					autoFocus
+					autoComplete="false"
 					{...register('email', {
 						required: true,
 					})}
@@ -48,6 +53,7 @@ const LoginPage = () => {
 					type="password"
 					name="password"
 					id="password"
+					autoComplete="false"
 					{...register('password', {
 						required: true,
 					})}
@@ -55,7 +61,7 @@ const LoginPage = () => {
 				/>
 				{errors.password && <p className={classes.ErrorMessage}>Please enter your password!</p>}
 			</div>
-			<button>Log In</button>
+			<button type="submit">Log In</button>
 			<p className={classes.SignUpText}>
 				Don't have an account yet?{' '}
 				<Link to="/signup" className={classes.Link}>

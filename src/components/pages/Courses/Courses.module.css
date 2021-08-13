@@ -41,9 +41,15 @@
 	font-weight: 700;
 }
 
+.CTA {
+	display: flex;
+	align-items: center;
+	margin-top: 2rem;
+}
+
 .Btn {
 	font-family: inherit;
-	width: 100%;
+	width: max-content;
 	border: none;
 	outline: none;
 	padding: 12px 36px;
@@ -51,9 +57,25 @@
 	font-size: 18px;
 	color: #fff;
 	font-weight: 700;
-	margin-top: 2rem;
 	border-radius: 3px;
 	cursor: pointer;
+	margin-right: 2rem;
+}
+
+.CTALink {
+	background: transparent;
+	padding: 12px 36px;
+	text-decoration: none;
+	font-weight: 700;
+	font-size: 18px;
+	border-radius: 3px;
+	color: #7500fa;
+	border: 1px solid #7500fa;
+	transition: all ease-in-out 0.4s;
+}
+
+.CTALink:hover {
+	background-color: #fff;
 }
 
 .FeaturedCourseText {
@@ -81,7 +103,7 @@
 	padding: 2rem 5rem;
 	margin: 0 0 2rem;
 	display: flex;
-	justify-content: space-between;
+	/* justify-content: space-between; */
 	flex-wrap: wrap;
 }
 

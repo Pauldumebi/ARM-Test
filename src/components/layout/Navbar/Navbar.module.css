@@ -3,7 +3,7 @@
 	align-items: center;
 	justify-content: space-between;
 	padding: 1rem 5rem;
-	border-top: 10px solid #faa900;
+	border-top: 10px solid #faa600;
 	border-bottom: 1px solid #aaa;
 	background-color: #fff;
 }
@@ -22,4 +22,17 @@
 .Nav ul {
 	list-style: none;
 	display: flex;
+	align-items: center;
+}
+
+.LogOut {
+	color: #fff;
+	background-color: #faa600;
+	border: none;
+	outline: none;
+	padding: 8px 16px;
+	border-radius: 3px;
+	font-family: inherit;
+	font-weight: 700;
+	cursor: pointer;
 }

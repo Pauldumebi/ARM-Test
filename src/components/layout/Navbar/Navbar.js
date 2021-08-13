@@ -21,6 +21,7 @@ const Navbar = () => {
 							localStorage.removeItem('ccAuth');
 							history.push('/');
 						}}
+						className={classes.LogOut}
 					>
 						Log Out
 					</button>
