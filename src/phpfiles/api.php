@@ -70,7 +70,7 @@ try {
         $hash = password_hash($request['password'], PASSWORD_DEFAULT);
 
         //Check if user already exists
-        $sql = "SELECT * FROM users WHERE userFirstname = '$firstName' AND (userLastname = '$lastName' AND userEmail = '$email')";
+        $sql = "SELECT * FROM users WHERE userEmail = '$email'";
         $result = $db->query($sql);
         if ($db->errno) {
             respond(500, ["success" => false, "message" => 'db error: ' . $db->error]);
@@ -96,9 +96,21 @@ try {
             if ($db->errno)
                 respond(500, ["success" => false, "message" => 'db error: ' . $db->error]);
 
-            respond(200, ["success" => true, "message" => "Sign Up Successful"]);
+            // Query users table for particular new Admin User
+            $sql = "SELECT users.*, company.companyName, role.roleName FROM users JOIN role ON users.userRoleID = role.roleID
+                    LEFT JOIN company ON users.companyID = company.companyID WHERE users.userEmail = '$email'";
+            $result = $db->query($sql);
+            if ($db->errno)
+                respond(500, ["success" => false, "message" => 'db error: ' . $db->error]);
+            if ($result->num_rows === 1) {
+                $userDetails = $result->fetch_array(MYSQLI_ASSOC);
+                $userData = ["id" => $userDetails["userID"], "firstname" => $userDetails["userFirstName"], "lastname" => $userDetails["userLastName"], "email" => $userDetails["userEmail"], "role" => $userDetails["roleName"], "companyName" => $userDetails["companyName"], "companyID" => $userDetails["companyID"]];
+                respond(200, ["success" => true, "message" => "Sign Up Successful", "userData" => $userData]);
+            } else {
+                respond(400, ["success" => false, "message" => "User not Registered"]);
+            }
         } else {
-            respond(200, ["success" => false, "message" => "User already Registered"]);
+            respond(400, ["success" => false, "message" => "User already Registered"]);
         }
     } elseif ((stripos($_SERVER['REQUEST_URI'], '/login') !== false) && $_SERVER['REQUEST_METHOD'] === "POST") {
         $email = $request["email"];
@@ -115,7 +127,7 @@ try {
             $pass_ok = password_verify($password, $userDetails['userPassword']);
             // Checks if the password matches
             if ($pass_ok) {
-                $userData = ["firstname" => $userDetails["userFirstName"], "lastname" => $userDetails["userLastName"], "email" => $userDetails["userEmail"], "role" => $userDetails["roleName"], "companyName" => $userDetails["companyName"], "companyID" => $userDetails["companyID"]];
+                $userData = ["id" => $userDetails["userID"], "firstname" => $userDetails["userFirstName"], "lastname" => $userDetails["userLastName"], "email" => $userDetails["userEmail"], "role" => $userDetails["roleName"], "companyName" => $userDetails["companyName"], "companyID" => $userDetails["companyID"]];
                 respond(200, ["success" => true, "message" => "Login Successful", "userData" => $userData]);
             } else
                 respond(400, ['success' => false, 'error' => 'login failed, invalid email or password']);
@@ -129,12 +141,12 @@ try {
         $email = $request['email'];
         // $courseID = $request['courseID'];
         $tel = $request['tel'];
-        $code = rand(200, 999);
-        $password = $firstName . $code;
-        $hash = password_hash($password, PASSWORD_DEFAULT);
+        // $code = rand(200, 999);
+        // $password = $firstName . $code;
+        $hash = password_hash("AbisolaUsers", PASSWORD_DEFAULT);
 
         // Checks if user already exists
-        $sql = "SELECT * FROM users WHERE userFirstname = '$firstName' AND (userLastname = '$lastName' AND userEmail = '$email')";
+        $sql = "SELECT * FROM users WHERE userEmail = '$email'";
         $result = $db->query($sql);
         if ($db->errno) {
             respond(500, ["success" => false, "message" => 'db error: ' . $db->error]);
@@ -219,6 +231,22 @@ try {
         if ($result->num_rows > 0) {
             $enrolledCourses = $result->fetch_all(MYSQLI_ASSOC);
             respond(200, ["success" => true, "message" => "You have enrolled courses", "enrolledCourses" => $enrolledCourses]);
+        }
+    } elseif ((stripos($_SERVER['REQUEST_URI'], '/companyUsers') !== false) && $_SERVER['REQUEST_METHOD'] === "POST") {
+
+        $companyID = $request["companyID"];
+
+        $sql = "SELECT userID, userFirstName, userLastName, userEmail FROM users WHERE companyID = '$companyID' AND userRoleID = 2";
+
+        $result = $db->query($sql);
+        if ($db->errno) {
+            respond(500, ["success" => false, "message" => 'db error: ' . $db->error]);
+        }
+        if ($result->num_rows > 0) {
+            $companyUsers = $result->fetch_all(MYSQLI_ASSOC);
+            respond(200, ["success" => true, "message" => "Users Available", "users" => $companyUsers]);
+        } else {
+            respond(400, ["success" => false, "message" => "No Users Available"]);
         }
     } else {
         respond(404, array('success' => false, 'message' => 'resource or endpoint not found'));
