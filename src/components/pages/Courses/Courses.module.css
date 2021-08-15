@@ -8,7 +8,7 @@
 }
 
 .FeaturedCourse {
-	font-family: Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+	font-family: 'Poppins', sans-serif;
 	display: flex;
 	justify-content: space-between;
 	background-color: paleturquoise;
@@ -112,7 +112,7 @@
 	display: flex;
 	justify-content: space-between;
 	width: 50%;
-	font-family: Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+	font-family: 'Poppins', sans-serif;
 }
 
 .ModalContent {
@@ -120,11 +120,11 @@
 	padding: 3rem;
 	border-radius: 3px;
 	text-align: center;
-	font-family: Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+	font-family: 'Poppins', sans-serif;
 }
 
 .ModalContent h6 {
-	font-family: Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+	font-family: 'Poppins', sans-serif;
 	font-size: 16px;
 	margin-bottom: 5px;
 	text-align: center;

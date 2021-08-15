@@ -2,15 +2,19 @@ import { Link, useHistory } from 'react-router-dom';
 import classes from './Login.module.css';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
+import { useState } from 'react';
+import Loader from '../../layout/Loader/Loader';
 
 const LoginPage = () => {
 	const { handleSubmit, register, formState } = useForm();
 	const { errors } = formState;
+	const [loading, setLoading] = useState(false);
 
 	const history = useHistory();
 
 	const onLoginFormSubmit = (data) => {
 		const myFormData = data;
+		setLoading(true);
 
 		axios
 			.post(
@@ -22,8 +26,13 @@ const LoginPage = () => {
 				const userInfo = JSON.stringify({
 					firstName: res.data.userData.firstname,
 					role: res.data.userData.role,
+					companyID: res.data.userData.companyID,
+					companyName: res.data.userData.companyName,
+					userID: res.data.userData.id,
 				});
+
 				localStorage.setItem('ccAuth', userInfo);
+				setLoading(false);
 				history.push('/overview');
 			})
 			.catch((err) => console.log(err));
@@ -61,7 +70,7 @@ const LoginPage = () => {
 				/>
 				{errors.password && <p className={classes.ErrorMessage}>Please enter your password!</p>}
 			</div>
-			<button type="submit">Log In</button>
+			{loading ? <Loader /> : <button type="submit">Log In</button>}
 			<p className={classes.SignUpText}>
 				Don't have an account yet?{' '}
 				<Link to="/signup" className={classes.Link}>

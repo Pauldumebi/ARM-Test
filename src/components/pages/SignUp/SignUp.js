@@ -4,6 +4,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import axios from 'axios';
 import * as Yup from 'yup';
 import { useHistory } from 'react-router-dom';
+import Loader from '../../layout/Loader/Loader';
+import { useState } from 'react';
 
 // form validation rules
 const validationSchema = Yup.object().shape({
@@ -29,7 +31,8 @@ const SignUp = () => {
 	const { register, handleSubmit, formState } = useForm({
 		resolver: yupResolver(validationSchema),
 	});
-	const { errors, isValid } = formState;
+	const [loading, setLoading] = useState(false);
+	const { errors } = formState;
 
 	const onSubmit = (data) => {
 		const myFormData = data;
@@ -153,7 +156,7 @@ const SignUp = () => {
 					)}
 				</div>
 			</div>
-			<button type="submit">Create Account</button>
+			{loading ? <Loader /> : <button type="submit">Create Account</button>}
 		</form>
 	);
 };
