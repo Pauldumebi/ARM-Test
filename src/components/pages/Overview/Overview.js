@@ -39,10 +39,12 @@ const Overview = () => {
 				console.log(res);
 				setFormLoadingState(false);
 				setSeatModal(false);
+				setSelectedCourse('');
 			})
 			.catch((err) => {
 				setFormLoadingState(false);
 				setSeatModal(false);
+				setSelectedCourse('');
 				console.log(err);
 			});
 	};
@@ -64,6 +66,7 @@ const Overview = () => {
 
 	useEffect(() => {
 		const userInfo = JSON.parse(localStorage.getItem('ccAuth'));
+		setLoading(true);
 		if (userInfo.role === 'admin') {
 			const companyInfo = JSON.stringify({
 				companyID: userInfo.companyID,
@@ -135,9 +138,11 @@ const Overview = () => {
 				console.log(res);
 				fetchEmployees();
 				setFormLoadingState(false);
+				setShowModal(false);
 			})
 			.catch((err) => {
 				console.log(err);
+				setShowModal(false);
 			});
 	};
 	return (
