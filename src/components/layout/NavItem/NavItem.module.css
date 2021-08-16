@@ -7,4 +7,5 @@
 
 .NavItem .ActiveLink {
 	color: #faa600;
+	font-weight: 700;
 }

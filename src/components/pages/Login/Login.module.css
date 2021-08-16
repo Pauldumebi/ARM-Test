@@ -41,6 +41,7 @@
 	font-family: inherit;
 	font-size: 14px;
 	outline: none;
+	margin-bottom: 0;
 	/* text-align: center; */
 	transition: all 0.4s ease-in-out;
 }
@@ -55,7 +56,15 @@
 	color: #ccc;
 }
 
-.Form p {
+.ErrorMessage {
+	text-align: center;
+	font-size: 12px;
+	font-weight: 700;
+	margin-top: 5px;
+	color: red;
+}
+
+.SignUpText {
 	font-size: 12px;
 	margin-top: 1.5rem;
 	font-weight: 700;
