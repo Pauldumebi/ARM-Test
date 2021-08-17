@@ -59,15 +59,45 @@
 	border-radius: 4px;
 }
 
-.OverviewCard .Link {
+.Link {
 	text-decoration: none;
 	background-color: #3e25c9;
 	color: #fff;
+	border: none;
 	text-transform: capitalize;
 	padding: 8px 16px;
 	border-radius: 4px;
 	width: max-content;
 	margin-right: 2rem;
+	font-family: inherit;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.IframeContainer {
+	width: 100%;
+	height: 100%;
+	text-align: center;
+	background-color: #fff;
+	padding: 1rem;
+}
+
+.IframeContainer div {
+	display: flex;
+	width: 50%;
+	margin: 0 auto;
+	justify-items: center;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 1rem;
+}
+
+.IframeContainer div h6 {
+	color: #3e25c9;
+	font-size: 18px;
+}
+.IframeContainer iframe {
+	margin: 0 auto;
 }
 
 .AssignUserBtn {

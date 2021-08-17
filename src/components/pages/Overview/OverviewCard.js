@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 import classes from './Overview.module.css';
 
 const OverviewCard = (props) => {
@@ -11,9 +11,12 @@ const OverviewCard = (props) => {
 			</div>
 			{/* <p>4.7 star</p> */}
 			<div className={classes.BtnContainer}>
-				<Link to={`/courses/${props.courseName}`} className={classes.Link}>
+				{/* <Link to={`/courses/${props.courseName}`} className={classes.Link}>
 					view course
-				</Link>
+				</Link> */}
+				<button className={classes.Link} onClick={props.showIframe}>
+					Play
+				</button>
 				{props.userInfo.role === 'admin' && (
 					<button onClick={() => props.showModal()} className={classes.AssignCourseBtn}>
 						Assign Seat
