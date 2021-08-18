@@ -61,7 +61,7 @@
 
 .Link {
 	text-decoration: none;
-	background-color: #3e25c9;
+	background-color: #12007a;
 	color: #fff;
 	border: none;
 	text-transform: capitalize;
@@ -93,7 +93,7 @@
 }
 
 .IframeContainer div h6 {
-	color: #3e25c9;
+	color: #12007a;
 	font-size: 18px;
 }
 .IframeContainer iframe {
@@ -121,7 +121,7 @@
 }
 
 .CompanyName {
-	background-color: #3e25c9;
+	background-color: #12007a;
 	color: #fff;
 	width: 100%;
 	font-weight: 400;
@@ -131,7 +131,7 @@
 }
 
 .EmployeeBox {
-	border: 1px solid #3e25c9;
+	border: 1px solid #12007a;
 	/* padding: 5px; */
 	margin-top: 1rem;
 	border-radius: 4px;
@@ -141,11 +141,11 @@
 }
 
 .EmployeeBox h5 {
-	color: #3e25c9;
+	color: #12007a;
 	background-color: #fff;
 	padding: 5px;
 	/* font-weight: 400; */
-	border-bottom: 1px solid #3e25c9;
+	border-bottom: 1px solid #12007a;
 }
 
 .EmployeeList {
@@ -153,7 +153,7 @@
 }
 
 .Employee {
-	border: 1px solid #3e25c9;
+	border: 1px solid #12007a;
 	overflow: hidden;
 	margin-bottom: 1rem;
 	border-radius: 4px;
@@ -162,13 +162,13 @@
 }
 
 .Employee .Name {
-	color: #3e25c9;
+	color: #12007a;
 	font-weight: 700;
 	padding: 3px;
 }
 
 .Employee .Email {
-	background-color: #3e25c9;
+	background-color: #12007a;
 	color: #fff;
 	padding: 4px;
 }
@@ -210,7 +210,7 @@
 .InputContainer input {
 	font-family: inherit;
 	border: none;
-	border-bottom: 2px solid #3e25c9;
+	border-bottom: 2px solid #12007a;
 	padding: 5px;
 	width: 50%;
 }
@@ -232,8 +232,8 @@
 
 .AssignCourseBtn {
 	padding: 8px 16px;
-	color: #3e25c9;
-	border: 1px solid #3e25c9;
+	color: #12007a;
+	border: 1px solid #12007a;
 	background-color: #fff;
 	/* margin-left: 2rem; */
 	width: max-content;
@@ -241,7 +241,7 @@
 
 .Form button {
 	padding: 8px 16px;
-	background-color: #3e25c9;
+	background-color: #12007a;
 	color: #fff;
 	font-size: 16px;
 	font-weight: 400;

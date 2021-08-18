@@ -35,7 +35,7 @@
 	/* font-weight: 700; */
 	outline: none;
 	border: none;
-	border: 1px solid #faa600;
+	border: 1px solid #12007a;
 	border-radius: 3px;
 	padding: 1rem 2.4rem;
 	font-family: inherit;
@@ -71,13 +71,13 @@
 }
 
 .Form .Link {
-	color: #faa600;
+	color: #12007a;
 	text-decoration: none;
 }
 
 .Form button {
 	width: 100%;
-	background-color: #faa600;
+	background-color: #12007a;
 	border: none;
 	outline: none;
 	color: #fff;

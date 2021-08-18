@@ -5,6 +5,8 @@ import CourseCard from '../../layout/CourseCard/CourseCard';
 import Loader from '../../layout/Loader/Loader';
 import Modal from '../../layout/Modal/Modal';
 import classes from './Courses.module.css';
+import { useDispatchContext } from '../../../context/context';
+import * as actionTypes from '../../../context/actions/actionTypes';
 
 const Courses = () => {
 	const history = useHistory();
@@ -13,11 +15,13 @@ const Courses = () => {
 	const [bundles, setBundles] = useState([]);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
+	const dispatch = useDispatchContext();
 
-	const enrollCourse = () => {
+	const enrollCourse = (id) => {
 		const userInfo = localStorage.getItem('ccAuth');
 		if (userInfo === null) return setShowModal(true);
-		history.push('/overview');
+		dispatch({ type: actionTypes.ADD_TO_CART, courseID: id });
+		// history.push('/overview');
 	};
 
 	useEffect(() => {
@@ -29,6 +33,10 @@ const Courses = () => {
 			.then((res) => {
 				setCourses(res.data.courses);
 				setBundles(res.data.bundles);
+				dispatch({
+					type: actionTypes.SET_ALL_COURSES,
+					courses: [...res.data.courses, ...res.data.bundles],
+				});
 				console.log(res.data.bundles);
 				setLoading(false);
 				setError(null);
@@ -37,7 +45,7 @@ const Courses = () => {
 				setError('Yikes! Something went wrong');
 				setLoading(false);
 			});
-	}, []);
+	}, [dispatch]);
 	return (
 		<section className={classes.Courses}>
 			{courses.length > 0 && (
@@ -53,7 +61,7 @@ const Courses = () => {
 									{/* <p className={classes.Stars}>5 star rating</p> */}
 								</div>
 								<div className={classes.CTA}>
-									<button className={classes.Btn} onClick={enrollCourse}>
+									<button className={classes.Btn} onClick={() => enrollCourse(courses[0].courseID)}>
 										Enroll Now
 									</button>
 									<Link

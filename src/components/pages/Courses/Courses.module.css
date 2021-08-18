@@ -53,7 +53,7 @@
 	border: none;
 	outline: none;
 	padding: 12px 36px;
-	background-color: #7500fa;
+	background-color: #12007a;
 	font-size: 18px;
 	color: #fff;
 	font-weight: 700;
@@ -69,8 +69,8 @@
 	font-weight: 700;
 	font-size: 18px;
 	border-radius: 3px;
-	color: #7500fa;
-	border: 1px solid #7500fa;
+	color: #12007a;
+	border: 1px solid #12007a;
 	transition: all ease-in-out 0.4s;
 }
 
@@ -132,7 +132,7 @@
 }
 
 .ModalContent .Link {
-	color: #faa600;
+	color: #12007a;
 	text-decoration: none;
 	font-weight: 700;
 }
