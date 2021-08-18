@@ -1,11 +1,13 @@
 import classes from './Cart.module.css';
-import { useStateContext } from '../../../context/context';
+import { useDispatchContext, useStateContext } from '../../../context/context';
+import * as actionTypes from '../../../context/actions/actionTypes';
 import { Link } from 'react-router-dom';
 import { usePaystackPayment } from 'react-paystack';
 import { useState } from 'react';
 
 const Cart = () => {
 	const { cart, total } = useStateContext();
+	const dispatch = useDispatchContext();
 	const userInfo = JSON.parse(localStorage.getItem('ccAuth'));
 	const [config, setConfig] = useState({
 		name: userInfo.companyName,
@@ -16,6 +18,7 @@ const Cart = () => {
 	const initializePayment = usePaystackPayment(config);
 
 	const onSuccess = () => {
+		dispatch({ type: actionTypes.CLEAR_CART });
 		alert('Payment Successful');
 	};
 
@@ -32,7 +35,13 @@ const Cart = () => {
 							className={classes.CartItemImage}
 						/>
 						<h6>{item.courseName}</h6>
-						<button>remove from cart</button>
+						<button
+							onClick={() =>
+								dispatch({ type: actionTypes.REMOVE_FROM_CART, courseID: item.courseID })
+							}
+						>
+							remove from cart
+						</button>
 					</div>
 				))
 			) : (
