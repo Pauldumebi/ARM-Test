@@ -26,6 +26,17 @@ export const reducer = (state, action) => {
 				total: updatedTotal,
 			};
 		}
+		case actionTypes.REMOVE_FROM_CART: {
+			const cart = [...state.cart];
+			// const selectItemIndex = cart.findIndex((item) => item.courseID === action.courseID);
+			const updatedCart = cart.filter((item) => item.courseID !== action.courseID);
+			const updatedTotal = totalCost(updatedCart);
+			return {
+				...state,
+				cart: [...updatedCart],
+				total: updatedTotal,
+			};
+		}
 		case actionTypes.TO_CHECKOUT: {
 			return {
 				...state,
@@ -37,6 +48,13 @@ export const reducer = (state, action) => {
 			return {
 				...state,
 				allCourses: action.courses,
+			};
+		}
+		case actionTypes.CLEAR_CART: {
+			return {
+				...state,
+				cart: [],
+				total: 0,
 			};
 		}
 

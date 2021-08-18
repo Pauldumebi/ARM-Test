@@ -21,6 +21,12 @@ export const setAllCourses = (allCourses) => {
 	};
 };
 
+export const clearCart = () => {
+	return {
+		type: actions.CLEAR_CART,
+	};
+};
+
 export const toCheckout = () => {
 	return {
 		type: actions.TO_CHECKOUT,
