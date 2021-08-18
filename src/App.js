@@ -8,6 +8,7 @@ import Login from './components/pages/Login/Login';
 import Overview from './components/pages/Overview/Overview';
 import SignUp from './components/pages/SignUp/SignUp';
 import SingleCourse from './components/pages/SingleCourse/SingleCourse';
+import Cart from './components/pages/Cart/Cart';
 
 function App() {
 	const auth = localStorage.getItem('ccAuth');
@@ -29,6 +30,7 @@ function App() {
 				<Route exact path="/courses" component={Courses} />
 				<Route exact path="/overview" component={Overview} />
 				<Route exact path="/courses/:courseName" component={SingleCourse} />
+				<Route exact path="/cart" component={Cart} />
 				<Redirect to="/" />
 			</Switch>
 		</div>
