@@ -3,7 +3,7 @@
 	align-items: center;
 	justify-content: space-between;
 	padding: 1rem 5rem;
-	border-top: 10px solid #faa600;
+	border-top: 10px solid #12007a;
 	border-bottom: 1px solid #aaa;
 	background-color: #fff;
 }
@@ -27,7 +27,7 @@
 
 .LogOut {
 	color: #fff;
-	background-color: #faa600;
+	background-color: #12007a;
 	border: none;
 	outline: none;
 	padding: 8px 16px;

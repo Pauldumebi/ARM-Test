@@ -1,0 +1,70 @@
+.Cart {
+	padding: 3rem 5rem;
+	background-color: #eee;
+}
+
+.Heading {
+	font-size: 24px;
+	margin-bottom: 1rem;
+}
+
+.CheckoutBtn {
+	color: #fff;
+	background-color: #12007a;
+	border: none;
+	outline: none;
+	padding: 8px 16px;
+	border-radius: 3px;
+	font-family: inherit;
+	font-weight: 700;
+	font-size: 16px;
+	cursor: pointer;
+	text-transform: capitalize;
+}
+
+.CartItem {
+	background-color: #fff;
+	border-radius: 4px;
+	padding: 8px;
+	margin-bottom: 1rem;
+	display: flex;
+	align-items: center;
+	width: 70%;
+}
+
+.CartItem h6 {
+	font-size: 18px;
+	margin-left: 2rem;
+	margin-right: auto;
+}
+
+.CartItem button {
+	font-family: inherit;
+	border: none;
+	outline: none;
+	display: flex;
+	background-color: #fff;
+	justify-content: center;
+	text-align: center;
+	cursor: pointer;
+	border: 1px solid #12007a;
+	text-transform: capitalize;
+	color: #12007a;
+	padding: 8px 16px;
+	border-radius: 4px;
+	font-weight: 700;
+}
+
+.CartItemImage {
+	height: 3rem;
+}
+
+.Total {
+	display: flex;
+	align-items: center;
+}
+
+.Total h6 {
+	font-size: 18px;
+	margin-right: 4rem;
+}

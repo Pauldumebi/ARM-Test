@@ -29,6 +29,7 @@ const LoginPage = () => {
 					companyID: res.data.userData.companyID,
 					companyName: res.data.userData.companyName,
 					userID: res.data.userData.id,
+					email: res.data.userData.email,
 				});
 
 				localStorage.setItem('ccAuth', userInfo);

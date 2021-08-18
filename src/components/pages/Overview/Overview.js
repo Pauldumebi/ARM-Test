@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import OverviewCard from './OverviewCard';
 import Loader from '../../layout/Loader/Loader';
+import Iframe from 'react-iframe';
 
 const Overview = () => {
 	const [showModal, setShowModal] = useState(false);
@@ -14,6 +15,8 @@ const Overview = () => {
 	const [loading, setLoading] = useState(false);
 	const [formLoadingState, setFormLoadingState] = useState(false);
 	const [seatModal, setSeatModal] = useState(false);
+	const [IframeModal, setIframeModal] = useState(false);
+
 	const [selectedCourse, setSelectedCourse] = useState('');
 
 	const onSelectCourseToAssign = (courseID) => {
@@ -182,6 +185,7 @@ const Overview = () => {
 									courseName={course.courseName}
 									showModal={() => onSelectCourseToAssign(course.courseID)}
 									userInfo={userInfo}
+									showIframe={() => setIframeModal(true)}
 								/>
 							))}
 						{loading && <Loader />}
@@ -240,7 +244,7 @@ const Overview = () => {
 			{seatModal && (
 				<Modal>
 					<div className={classes.EmployeeBox}>
-						<h5>Assign Course to:</h5>
+						<h5 onClick={() => setSeatModal(false)}>Assign Course to:</h5>
 						<div className={classes.EmployeeList}>
 							{allEmployee.length > 0 ? (
 								allEmployee.map((employee) => (
@@ -268,6 +272,26 @@ const Overview = () => {
 							</button>
 						</div>
 						{formLoadingState && <Loader />}
+					</div>
+				</Modal>
+			)}
+			{IframeModal && (
+				<Modal>
+					<div className={classes.IframeContainer}>
+						<div>
+							<h6>Course Title</h6>
+							<button className={classes.Link} onClick={() => setIframeModal(false)}>
+								close
+							</button>
+						</div>
+						<Iframe
+							url="https://learningplatform.sandbox.9ijakids.com/gamezip/Carrot%20Rush/story_html5.html"
+							// position="absolute"
+							width="90%"
+							id="myId"
+							// className="myClassname"
+							height="90%"
+						/>
 					</div>
 				</Modal>
 			)}

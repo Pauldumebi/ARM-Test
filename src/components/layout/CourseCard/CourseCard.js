@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom';
 import classes from './CourseCard.module.css';
 import { ReactComponent as Cart } from '../../../images/shopping-cart.svg';
+import { useDispatchContext } from '../../../context/context';
+import * as actionTypes from '../../../context/actions/actionTypes';
 
 const CourseCard = (props) => {
+	const dispatch = useDispatchContext();
 	return (
 		<div className={classes.CourseCard}>
 			<div className={classes.CourseCardImage}>
@@ -25,7 +28,10 @@ const CourseCard = (props) => {
 					>
 						Learn More
 					</Link>
-					<button onClick={() => alert('added to cart')} className={classes.Button}>
+					<button
+						onClick={() => dispatch({ type: actionTypes.ADD_TO_CART, courseID: props.id })}
+						className={classes.Button}
+					>
 						<Cart />
 					</button>
 				</div>
