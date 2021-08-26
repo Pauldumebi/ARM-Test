@@ -66,10 +66,11 @@ try {
         $lastName = $request['lastName'];
         $address = $request['address'];
         $email = $request['email'];
+        $email_suffix = explode("@", $request['email'])[1];
         $tel = $request['tel'];
         $hash = password_hash($request['password'], PASSWORD_DEFAULT);
-
-        //Check if user already exists
+        // echo $email_suffix;
+        // Check if user already exists
         $sql = "SELECT * FROM users WHERE userEmail = '$email'";
         $result = $db->query($sql);
         if ($db->errno) {
@@ -85,7 +86,7 @@ try {
             $userID = $db->insert_id;
 
             // Register Company Details
-            $sql = "INSERT INTO company (companyName, companyAddress1, companyAdminID) VALUES ('$companyName', '$companyAddress', '$userID')";
+            $sql = "INSERT INTO company (companyName, companyAddress1, companyAdminID, emailSuffix) VALUES ('$companyName', '$companyAddress', '$userID', '$email_suffix')";
             $db->query($sql);
             if ($db->errno)
                 respond(500, ["success" => false, "message" => 'db error: ' . $db->error]);
@@ -139,11 +140,12 @@ try {
         $firstName = $request['firstName'];
         $lastName = $request['lastName'];
         $email = $request['email'];
+        $email_suffix = explode("@", $request['email'])[1];
         // $courseID = $request['courseID'];
         $tel = $request['tel'];
         // $code = rand(200, 999);
         // $password = $firstName . $code;
-        $hash = password_hash("AbisolaUsers", PASSWORD_DEFAULT);
+        $hash = password_hash("LearningPlatform", PASSWORD_DEFAULT);
 
         // Checks if user already exists
         $sql = "SELECT * FROM users WHERE userEmail = '$email'";
@@ -152,21 +154,23 @@ try {
             respond(500, ["success" => false, "message" => 'db error: ' . $db->error]);
         }
         if ($result->num_rows === 0) {
-            // if users does exist create a new user and assign to a company
-            $sql = "INSERT INTO users (userFirstName, userLastName, userEmail, userPhone, userPassword, userRoleID, companyID) VALUES ('$firstName', '$lastName', '$email', '$tel', '$hash', 2, '$companyID')";
-            $db->query($sql);
+            // Checks if user already exists
+            $sql = "SELECT * FROM company WHERE companyID = '$companyID'";
+            $result = $db->query($sql);
             if ($db->errno) {
                 respond(500, ["success" => false, "message" => 'db error: ' . $db->error]);
             }
-            $userID = $db->insert_id;
-
-            // $sql = "INSERT INTO courseEnrolment (courseID, userID)  VALUES('$courseID', '$userID')";
-            // $db->query($sql);
-            // if ($db->errno) {
-            //     respond(500, ["success" => false, "message" => 'db error: ' . $db->error]);
-            // }
-
-
+            if ($result["emailSuffix"] === $email_suffix) {
+                // if users does exist create a new user and assign to a company
+                $sql = "INSERT INTO users (userFirstName, userLastName, userEmail, userPhone, userPassword, userRoleID, companyID) VALUES ('$firstName', '$lastName', '$email', '$tel', '$hash', 2, '$companyID')";
+                $db->query($sql);
+                if ($db->errno) {
+                    respond(500, ["success" => false, "message" => 'db error: ' . $db->error]);
+                }
+                $userID = $db->insert_id;
+            } else {
+                respond(200, ["success" => false, "message" => "User Email not Company Email"]);
+            }
             respond(200, ["success" => true, "message" => "User Created Successfully"]);
         } else {
             respond(200, ["success" => false, "message" => "User Already Exists"]);
