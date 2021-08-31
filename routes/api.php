@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CoursesController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -30,4 +31,8 @@ Route::prefix("v1")->group(function () {
     Route::post("/login", [AuthController::class, "login"]);
     Route::post("/user", [UserController::class, "createCompanyUser"]);
     Route::post("/companyusers", [UserController::class, "getCompanyUsers"]);
+    Route::get("/course", [CoursesController::class, "getCourses"]);
+    Route::post("/course-enrollment", [CoursesController::class, "enrolToCourse"]);
+    Route::post("/enrolled-courses", [CoursesController::class, "getEnrolledCourses"]);
+    Route::post("/modules-topics", [CoursesController::class, "getCourseModuleTopics"]);
 });
