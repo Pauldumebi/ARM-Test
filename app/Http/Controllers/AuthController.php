@@ -31,13 +31,14 @@ class AuthController extends Controller
         $firstname = $req->firstName;
         $lastname = $req->lastName;
         $email = $req->email;
+        $adminRole = $req->adminRole;
         $tel = $req->tel;
         $hash = password_hash($req->password, PASSWORD_DEFAULT);
         $token = $this->RandomCode();
 
         try {
 
-            if (DB::table("users")->where("userEmail", "=", $email)->doesntExist()) {
+            if (DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->where("users.userEmail", "=", $email)->orWhere("company.companyName", "=", $comName, "or")->orWhere("company.emailSuffix", "=", $comEmailSuffix)->doesntExist()) {
 
                 $id = DB::table("users")->insertGetId(
                     ["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userPassword" => $hash, "userRoleID" => 1, "token" => $token],
@@ -47,7 +48,8 @@ class AuthController extends Controller
                     "companyName" => $comName,
                     "companyAddress1" => $comAdr,
                     "companyAdminID" => $id,
-                    "emailSuffix" => $comEmailSuffix
+                    "emailSuffix" => $comEmailSuffix,
+                    "companyAdminRole" => $adminRole
                 ]);
 
                 $updatedID = DB::table("users")->where("userEmail", "=", $email)->update([
@@ -59,7 +61,7 @@ class AuthController extends Controller
                 $userData = ["token" => $query[0]->token, "role" => "admin"];
                 return response()->json(["success" => true, "data" => $userData]);
             } else {
-                return response()->json(["success" => false, "message" => "User Already Registered"], 401);
+                return response()->json(["success" => false, "message" => "Comapany or Admin User Already Exist"], 401);
             }
             // return response()->json(["success" => true, "data" => $users], 200);
         } catch (\Illuminate\Database\QueryException $ex) {
