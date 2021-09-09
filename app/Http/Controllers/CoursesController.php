@@ -7,6 +7,23 @@ use Illuminate\Support\Facades\DB;
 
 class CoursesController extends Controller
 {
+
+    private function getSeats($companyID, $courseID)
+    {
+        $query = DB::table("courseSeat")->where("companyID", "=", $companyID)->where("courseID", "=", $courseID)->get();
+        if (count($query) > 0) {
+            $totalSeats = $query[0]->seats;
+        } else {
+            $totalSeats = 0;
+        }
+
+
+        $query = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("companyID", "=", $companyID)->where("courseID", "=", $courseID)->get();
+        $assignedSeats = count($query);
+
+        return ["Total" => $totalSeats, "Assigned" => $assignedSeats];
+    }
+
     public function getCourses()
     {
         try {
@@ -30,16 +47,65 @@ class CoursesController extends Controller
         $courseID = $req->courseID;
 
         try {
-            $user = DB::table("users")->where("token", "=", $token)->get();
+            $user = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 2)->get();
             if (count($user) === 1) {
-                $userID = $user[0]->userID;
-                if (DB::table("courseEnrolment")->where("userID", "=", $userID)->where("courseID", "=", $courseID)->doesntExist()) {
 
-                    DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID]);
+                if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
+                    $userID = $user[0]->userID;
 
-                    return response()->json(["success" => true, "message" => "Enrollment Successful"]);
+                    if (DB::table("courseEnrolment")->where("userID", "=", $userID)->where("courseID", "=", $courseID)->doesntExist()) {
+
+                        $companyID = $user[0]->companyID;
+
+                        $seats = $this->getSeats($companyID, $courseID);
+
+                        if ($seats["Assigned"] < $seats["Total"]) {
+                            DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID]);
+
+                            return response()->json(["success" => true, "message" => "Enrollment Successful"]);
+                        }
+
+                        return response()->json(["success" => false, "message" => "No more Course Seats!"], 400);
+                    } else {
+                        return response()->json(["success" => true, "message" => "Already Enrolled"]);
+                    }
                 } else {
-                    return response()->json(["success" => true, "message" => "Already Enrolled"]);
+                    return response()->json(["success" => false, "message" => "Course does not exist"], 400);
+                }
+            } else {
+                return response()->json(["success" => false, "message" => "Users does not exist"], 400);
+            }
+        } catch (\Illuminate\Database\QueryException $ex) {
+            return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
+        }
+    }
+
+    public function enrolCompanyToCourse(Request $req)
+    {
+        $token = $req->token;
+        $courseID = $req->courseID;
+        // $seats = $req->seats;
+        $seats = isset($req->seats) ? $req->seats : 1;
+
+        try {
+            $user = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->get();
+            if (count($user) === 1) {
+
+                if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
+                    $userID = $user[0]->userID;
+                    $companyID = $user[0]->companyID;
+
+                    if (DB::table("courseEnrolment")->where("userID", "=", $userID)->where("courseID", "=", $courseID)->doesntExist()) {
+
+                        DB::table("courseSeat")->insert(["courseID" => $courseID, "companyID" => $companyID, "seats" => $seats]);
+                        DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID]);
+
+                        return response()->json(["success" => true, "message" => "Enrollment Successful"]);
+                    } else {
+                        return response()->json(["success" => true, "message" => "Already Enrolled"]);
+                    }
+                } else {
+                    return response()->json(["success" => false, "message" => "Course does not exist"]);
                 }
             } else {
                 return response()->json(["success" => false, "message" => "Users does not exist"]);
@@ -86,6 +152,28 @@ class CoursesController extends Controller
                 return response()->json(["success" => true, "courseName" => $courseName, "modulesTopics" => $result]);
             } else {
                 return response()->json(["success" => false, "message" => "Course Does not Exist"], 400);
+            }
+        } catch (\Illuminate\Database\QueryException $ex) {
+            return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
+        }
+    }
+
+    public function getCourseSeats(Request $req)
+    {
+        $token = $req->token;
+        $courseID = $req->courseID;
+
+        try {
+            $user = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->get();
+            if (count($user) === 1) {
+                $companyID = $user[0]->companyID;
+
+
+                $seats = $this->getSeats($companyID, $courseID);
+
+                return response()->json(["success" => true, "data" => ["Totals Seats" => $seats["Total"], "Assigned Seats" => $seats["Assigned"]]]);
+            } else {
+                return response()->json(["success" => false, "message" => "Users not Admin"], 401);
             }
         } catch (\Illuminate\Database\QueryException $ex) {
             return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
