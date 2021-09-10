@@ -179,4 +179,34 @@ class CoursesController extends Controller
             return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
         }
     }
+
+    public function getCoursesAssignment(Request $req)
+    {
+        // Think this should only contain courses
+        $token = $req->token;
+        try {
+            $user = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->get();
+            if (count($user) === 1) {
+                $courses = DB::table("course")->get();
+
+                if (count($courses) > 0) {
+                    $i = 0;
+                    foreach ($courses as $course) {
+                        if (DB::table("courseEnrolment")->join("course", "courseEnrolment.courseID", "=", "course.courseID")->join("users", "courseEnrolment.userID", "=", "users.userID")->select(["course.courseID", "course.courseName", "course.courseDescription", "course.duration", "course.courseType", "courseEnrolment.enrolDate"])->where("users.token", "=", $token)->where("course.courseID", "=", $course->courseID)->exists()) {
+                            $course->enrolled = true;
+                        } else {
+                            $course->enrolled = false;
+                        }
+                    }
+                    return response()->json(["success" => true, "courses" => $courses]);
+                } else {
+                    return response()->json(["success" => true, "message" => "No Courses Found"]);
+                }
+            } else {
+                return response()->json(["success" => false, "message" => "Users Not Admin"]);
+            }
+        } catch (\Illuminate\Database\QueryException $ex) {
+            return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
+        }
+    }
 }
