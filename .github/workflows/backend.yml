@@ -14,15 +14,35 @@ jobs:
       - name: Deploying to Nimdee Test Server
         uses: appleboy/ssh-action@master # An action made to control Linux servers
         with: # We set all our secrets here for the action, these won't be shown in the action logs
-          host: 165.232.38.42
-          username: masterwhiz
-          key:  -----BEGIN OPENSSH PRIVATE KEY-----
-                b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
-                QyNTUxOQAAACBex0ghvBH9xG7cGiHboX1ATzYM1cMmQtJv9xREC/qqhAAAAJiduy6fnbsu
-                nwAAAAtzc2gtZWQyNTUxOQAAACBex0ghvBH9xG7cGiHboX1ATzYM1cMmQtJv9xREC/qqhA
-                AAAECAzhbzKhfLxMW1BH2I5kUkLt2/v7dGucM6vfHyGpNFXV7HSCG8Ef3EbtwaIduhfUBP
-                NgzVwyZC0m/3FEQL+qqEAAAAE2FkZW5leWU5N0B5YWhvby5jb20BAg==
-                -----END OPENSSH PRIVATE KEY-----
+          host: '165.232.38.42'
+          username: 'masterwhiz'
+          key:  '-----BEGIN RSA PRIVATE KEY-----
+                MIIEoAIBAAKCAQEAjgotHgDM/rrGM6DCCWePBtx+xCmIYUmYiMjA3FxjlKBPpryL
+                lzniJUGMpq5iV47KOrg2XkQU/jTCaYbdCW1fnCotOxRCxkRVyJwzyQDMKcqhQwQY
+                Ir0Tk7QdlKbpIyyf+0Jxn7lzXyksg66+Essx55R0qvOeZsp/gETUPD4rVA2kUTgR
+                wH5f61u1r87sIVwuBrvujf/RLAFU+XoeH+Ga4CY9P0cLu7naM/UFikqRp+QeTM7Y
+                7dTq7hscM+1Y/j4If/SPyJXDQWMwUmlBUCBn3pe8Ijgkgjuqa0Eo5xPmwxY5ET0K
+                TlSbSzK9iJ3MO3Vs8R9aDR4vz/U6HDnusVB3XwIBJQKCAQBYS4PUYVzVsl+H4Hie
+                D/Ef8Nkt1KDih7HYfMrp2JDtr8LPbkjvTX69NpWzuIJSGn21zHTS0GATpEF/3jZf
+                zl4HISMJDJg2Ds2Kipy7N9jbtU98r4Sf+P5U5ZXY8iI4da+OWbxAsYzoIIN0c4rp
+                FobOObBOl3BNvCW+b/mNO2cKu21n3IU8hX6HQV26LphOpTKYtFaHqClDizPixDRJ
+                0z+y+uzZ3Q5V+oxzzzQDUDBYpnRkh6Izg4FDv9HXWHR8NdNAWDaJbqbsr0Hv/aHl
+                nFFwRIww/r6k+ZEmWFxJ4D5khXAJjGnAvqCax7kKNwPhDFkf9LtRLfqI5hXks4eQ
+                yMWNAoGBAOjaarTosA8RecV1QZc5Tn6L6K/NbaXGJM0p2id6rYLzihlEvY3sRScg
+                qaSxugHqABuCf8KiWexTusGk9Yz4399fquk/RSmLHIPJ/fMOVdEh7UA+G6Xg2r+C
+                eaMMIq4Na2ygfaBLvixpdqy7dVxFcWhDk5J8J3ulpsCWB9xh640PAoGBAJwow6fl
+                v+l6u5EaLB0bn8JCYzkd/hWJ5lW73sPrqJsw2/Te1/dxqf2m58pj7iu02DxrXqIO
+                3xhlCmIIBVNqErPlTHAxyx3geqaiLFTxzx7bih/uViqM2pIaZeZCtQDcTpKkK3H5
+                CrpuTkAsB5Y+EYuQZkEvwv+9YecABiH3LRCxAoGAMli9IDJPlI4oKrGRpCgQ+MRN
+                /H9xp01vvagvKyFxn8X0WH2QxL12vFoW14BfkbYN3G8+N+vAanL38oSIHnr/+PIX
+                HazQrwlSRgIpEfVC/MkQs/HAyettkTD3tI0AlFXttp89wcswCZpDLEQ1DQgYhT8L
+                Jpdie5lwKaPmBiMCf10CgYAubPvlzq6tMlNwU+OZ83SvX9hPQESenp5sg/Yekis1
+                DoaU6E4LS042pz395luQdAjvXjDkEkJTXE8x5rV5qenidJovMWXmSafsWbonF3Tt
+                f4nt0Tw2KeAdmSU2njXP0stAWlIa9wMwgaiPnmMe1C66yhCP65rWaLw9wbyiUGdX
+                /QKBgFSNRpsQCFzMx/HhVDhNZDxvnJMFGGhJaHNjkM6L4judCs00r9eJKupjQzYJ
+                FinsIFpplalmM7c0AQAcr9lwhdfC3mNecxqz0qmGm6d4S5O0bIzy9tJCjcxWCWgX
+                XzQl8jROJ+9Pe4noMK+IHoKlWjAODa7AfgrpTwMj1gvMsYwt
+                -----END RSA PRIVATE KEY-----'
 
           # password: Best1NAfrica
 
