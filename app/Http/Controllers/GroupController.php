@@ -154,7 +154,7 @@ class GroupController extends Controller
 
     public function addUser(Request $req)
     {
-
+        //Lets test CICD
         $token = $req->token;
         $usertoken = $req->usertoken;
         $groupid = $req->groupid;
