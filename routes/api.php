@@ -57,7 +57,8 @@ Route::prefix("v1")->group(function () {
     Route::post("/groups-company", [GroupController::class, "fetchCompanyGroup"]);
     Route::post("/group-course", [GroupController::class, "assignCourse"]);
     Route::delete("/group-course", [GroupController::class, "unassignCourse"]);
+    Route::post("/courses-group", [GroupController::class, "fetchGroupCourse"]);
     Route::post("/group-user", [GroupController::class, "addUser"]);
     Route::delete("/group-user", [GroupController::class, "removeUser"]);
-    Route::post("/users-group", [GroupController::class, "fetchGroupUsers"]);
+    Route::post("/users-group", [GroupController::class, "fetchGroupUser"]);
 });
