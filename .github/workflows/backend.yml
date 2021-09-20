@@ -1,0 +1,23 @@
+name: Test CI/CD BackEnd
+
+on:
+  push:
+    branches:
+      - backend # tells github to run this on any push to the repository
+
+jobs:
+  deploy:
+    runs-on: ubuntu-18.04
+    # needs:  # this job depends on "test" having finished
+    # if: github.ref == 'refs/heads/backend' # we tell Github to only execute this step if we're on our master branch (so we don't put unfinished branches in production)
+    steps:
+      - name: Deploying to Nimdee Test Server
+        uses: appleboy/ssh-action@master # An action made to control Linux servers
+        with: # We set all our secrets here for the action, these won't be shown in the action logs
+          host: 165.232.38.42
+          username: masterwhiz
+          key: -----BEGIN RSA PRIVATE KEY-----MIIEoAIBAAKCAQEAjgotHgDM/rrGM6DCCWePBtx+xCmIYUmYiMjA3FxjlKBPpryLlzniJUGMpq5iV47KOrg2XkQU/jTCaYbdCW1fnCotOxRCxkRVyJwzyQDMKcqhQwQYIr0Tk7QdlKbpIyyf+0Jxn7lzXyksg66+Essx55R0qvOeZsp/gETUPD4rVA2kUTgRwH5f61u1r87sIVwuBrvujf/RLAFU+XoeH+Ga4CY9P0cLu7naM/UFikqRp+QeTM7Y7dTq7hscM+1Y/j4If/SPyJXDQWMwUmlBUCBn3pe8Ijgkgjuqa0Eo5xPmwxY5ET0KTlSbSzK9iJ3MO3Vs8R9aDR4vz/U6HDnusVB3XwIBJQKCAQBYS4PUYVzVsl+H4HieD/Ef8Nkt1KDih7HYfMrp2JDtr8LPbkjvTX69NpWzuIJSGn21zHTS0GATpEF/3jZfzl4HISMJDJg2Ds2Kipy7N9jbtU98r4Sf+P5U5ZXY8iI4da+OWbxAsYzoIIN0c4rpFobOObBOl3BNvCW+b/mNO2cKu21n3IU8hX6HQV26LphOpTKYtFaHqClDizPixDRJ0z+y+uzZ3Q5V+oxzzzQDUDBYpnRkh6Izg4FDv9HXWHR8NdNAWDaJbqbsr0Hv/aHlnFFwRIww/r6k+ZEmWFxJ4D5khXAJjGnAvqCax7kKNwPhDFkf9LtRLfqI5hXks4eQyMWNAoGBAOjaarTosA8RecV1QZc5Tn6L6K/NbaXGJM0p2id6rYLzihlEvY3sRScgqaSxugHqABuCf8KiWexTusGk9Yz4399fquk/RSmLHIPJ/fMOVdEh7UA+G6Xg2r+CeaMMIq4Na2ygfaBLvixpdqy7dVxFcWhDk5J8J3ulpsCWB9xh640PAoGBAJwow6flv+l6u5EaLB0bn8JCYzkd/hWJ5lW73sPrqJsw2/Te1/dxqf2m58pj7iu02DxrXqIO3xhlCmIIBVNqErPlTHAxyx3geqaiLFTxzx7bih/uViqM2pIaZeZCtQDcTpKkK3H5CrpuTkAsB5Y+EYuQZkEvwv+9YecABiH3LRCxAoGAMli9IDJPlI4oKrGRpCgQ+MRN/H9xp01vvagvKyFxn8X0WH2QxL12vFoW14BfkbYN3G8+N+vAanL38oSIHnr/+PIXHazQrwlSRgIpEfVC/MkQs/HAyettkTD3tI0AlFXttp89wcswCZpDLEQ1DQgYhT8LJpdie5lwKaPmBiMCf10CgYAubPvlzq6tMlNwU+OZ83SvX9hPQESenp5sg/Yekis1DoaU6E4LS042pz395luQdAjvXjDkEkJTXE8x5rV5qenidJovMWXmSafsWbonF3Ttf4nt0Tw2KeAdmSU2njXP0stAWlIa9wMwgaiPnmMe1C66yhCP65rWaLw9wbyiUGdX/QKBgFSNRpsQCFzMx/HhVDhNZDxvnJMFGGhJaHNjkM6L4judCs00r9eJKupjQzYJFinsIFpplalmM7c0AQAcr9lwhdfC3mNecxqz0qmGm6d4S5O0bIzy9tJCjcxWCWgXXzQl8jROJ+9Pe4noMK+IHoKlWjAODa7AfgrpTwMj1gvMsYwt-----END RSA PRIVATE KEY-----
+          # password: Best1NAfrica
+          script: |
+            cd /var/www/learningplatform/laravel # we move into our app's folder
+            git pull # we pull any changes from git
