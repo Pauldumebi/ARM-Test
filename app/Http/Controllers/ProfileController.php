@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class ProfileController extends Controller
+{
+
+
+    private function isAdmin($token)
+    {
+        // Checks if token has admin priviledges and returns companyID of Admin
+        if (DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->exists()) {
+            $user = DB::table("users")->where("token", "=", $token)->get();
+            return ["isAdmin" => true, "companyID" => $user[0]->companyID, "userID" => $user[0]->userID];
+        } else {
+            return ["isAdmin" => false];
+        }
+    }
+
+    private function userExists($token)
+    {
+        // Checks if token has a corresponding user in the DB and return the userID and companyID
+        if (DB::table("users")->where("token", "=", $token)->exists()) {
+            $user = DB::table("users")->where("token", "=", $token)->get();
+            return ["userExists" => true, "companyID" => $user[0]->companyID, "userID" => $user[0]->userID];
+        } else {
+            return ["userExists" => false];
+        }
+    }
+
+    public function getUserDetails($token)
+    {
+        try {
+            $userExists = $this->userExists($token);
+            // Checks if a user really exists
+            if ($userExists["userExists"]) {
+                $userDetails = DB::table("users")->join("company", "company.companyID", "=", "users.companyID")->where("token", "=", $token)->select(["users.userFirstName", "users.userLastName", "users.userEmail", "company.companyName", "company.companyAddress1"])->get();
+                return response()->json(["success" => true, "userDetails" => $userDetails]);
+            } else {
+                return response()->json(["success" => false, "message" => "Users does not exist"], 400);
+            }
+        } catch (\Illuminate\Database\QueryException $ex) {
+            return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
+        }
+    }
+
+    public function updateUserDetails(Request $req, $token)
+    {
+    }
+
+    public function updateCompanyDetails(Request $req, $token)
+    {
+    }
+
+    public function updatePassword(Request $req, $token)
+    {
+    }
+}
