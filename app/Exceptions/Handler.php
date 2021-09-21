@@ -2,6 +2,8 @@
 
 namespace App\Exceptions;
 
+use ErrorException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Throwable;
@@ -55,6 +57,24 @@ class Handler extends ExceptionHandler
                     "success" => false,
                     "message" => $e->getMessage()
                 ], 405);
+            }
+        });
+
+        $this->renderable(function (QueryException $e, $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    "success" => false,
+                    "message" => $e->getMessage()
+                ], 500);
+            }
+        });
+
+        $this->renderable(function (ErrorException $e, $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    "success" => false,
+                    "message" => $e->getMessage()
+                ], 500);
             }
         });
     }

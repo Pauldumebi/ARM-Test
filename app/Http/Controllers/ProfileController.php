@@ -84,7 +84,7 @@ class ProfileController extends Controller
         $userExists = $this->userExists($token);
         // Checks if a user really exists
         if ($userExists["userExists"]) {
-            $pass_ok = password_verify($currentPassword, $userExists["userPassword"]);
+            $pass_ok = password_verify($currentPassword, $userExists["password"]);
             if ($pass_ok) {
                 $hash = password_hash($newPassword, PASSWORD_DEFAULT);
                 DB::table("users")->update(["userPassword" => $hash]);
