@@ -37,7 +37,8 @@ class AuthController extends Controller
         $token = $this->RandomCode();
 
         try {
-
+            $this-> sendEmail($firstname, $email);
+            return response()->json(["success" => true, "data" => 'Email sent']);
             if (DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->where("users.userEmail", "=", $email)->orWhere("company.companyName", "=", $comName, "or")->orWhere("company.emailSuffix", "=", $comEmailSuffix)->doesntExist()) {
 
                 $id = DB::table("users")->insertGetId(
@@ -57,16 +58,28 @@ class AuthController extends Controller
                 ]);
 
                 $query = DB::table("users")->where("userEmail", "=", $email)->select(["token"])->get();
-
+                // $this-> sendEmail($firstname, $email);
                 $userData = ["token" => $query[0]->token, "role" => "admin"];
                 return response()->json(["success" => true, "data" => $userData]);
             } else {
-                return response()->json(["success" => false, "message" => "Comapany or Admin User Already Exist"], 401);
+                return response()->json(["success" => false, "message" => "Company or Admin User Already Exist"], 401);
             }
             // return response()->json(["success" => true, "data" => $users], 200);
         } catch (\Illuminate\Database\QueryException $ex) {
             return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
         }
+    }
+
+    public function sendEmail ($firstname, $email) {
+        $details = [
+            'name' => $firstname,
+            'email' => $email,
+            'link' => 'nimdee.com',
+            'websiteLink' => 'nimdee.com'
+        ];
+   
+        \Mail::to('paulchukwurah7@gmail.com')->send(new \App\Mail\VerifyEmail($details));
+        return response()->json(["success" => true, "message" => 'Email is Sent'], 200);
     }
 
     public function login(Request $req)
