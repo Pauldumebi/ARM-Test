@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CoursesController;
 use App\Http\Controllers\GroupController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -49,11 +50,19 @@ Route::prefix("v1")->group(function () {
 Route::prefix("v1")->group(function () {
     Route::post("/group", [GroupController::class, "createGroup"]);
     Route::delete("/group", [GroupController::class, "removeGroup"]);
-    Route::post("/groups-company", [GroupController::class, "fetchCompanyGroup"]);
+    Route::get("/groups-company/{token}", [GroupController::class, "fetchCompanyGroup"]);
     Route::post("/group-course", [GroupController::class, "assignCourse"]);
     Route::delete("/group-course", [GroupController::class, "unassignCourse"]);
     Route::post("/courses-group", [GroupController::class, "fetchGroupCourse"]);
     Route::post("/group-user", [GroupController::class, "addUser"]);
     Route::delete("/group-user", [GroupController::class, "removeUser"]);
     Route::post("/users-group", [GroupController::class, "fetchGroupUser"]);
+});
+
+// Profile Page Controller Endpoints
+Route::prefix("v1")->group(function () {
+    Route::get("/profile/{token}", [ProfileController::class, "getUserDetails"]);
+    Route::post("/profile/{token}", [ProfileController::class, "updateUserDetails"]);
+    Route::post("/company-profile/{token}", [ProfileController::class, "updateCompanyDetails"]);
+    Route::post("/password/{token}", [ProfileController::class, "updatePassword"]);
 });

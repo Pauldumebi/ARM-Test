@@ -111,10 +111,8 @@ class GroupController extends Controller
         }
     }
 
-    public function fetchCompanyGroup(Request $req)
+    public function fetchCompanyGroup($token)
     {
-
-        $token = $req->token;
 
         try {
             $checkToken = $this->isAdmin($token);
