@@ -55,7 +55,7 @@ class ProfileController extends Controller
         $userExists = $this->userExists($token);
         // Checks if a user really exists
         if ($userExists["userExists"]) {
-            DB::table("users")->update(["userFirstName" => $firstName, "userLastName" => $lastName]);
+            DB::table("users")->where("token", "=", $token)->update(["userFirstName" => $firstName, "userLastName" => $lastName]);
             return response()->json(["success" => true, "message" => "Profile Updated"]);
         } else {
             return response()->json(["success" => false, "message" => "Users does not exist"], 400);
@@ -70,7 +70,7 @@ class ProfileController extends Controller
         $isAdmin = $this->isAdmin($token);
         // Checks if a user is Admin
         if ($isAdmin["isAdmin"]) {
-            DB::table("company")->update(["companyName" => $companyName, "companyAddress1" => $companyAddress]);
+            DB::table("company")->where("companyID", "=", $isAdmin["companyID"])->update(["companyName" => $companyName, "companyAddress1" => $companyAddress]);
             return response()->json(["successs" => true, "message" => "Company Details Updated"]);
         } else {
             return response()->json(["success" => false, "message" => "Users not Admin"], 401);
@@ -87,7 +87,7 @@ class ProfileController extends Controller
             $pass_ok = password_verify($currentPassword, $userExists["password"]);
             if ($pass_ok) {
                 $hash = password_hash($newPassword, PASSWORD_DEFAULT);
-                DB::table("users")->update(["userPassword" => $hash]);
+                DB::table("users")->where("token", "=", $token)->update(["userPassword" => $hash]);
                 return response()->json(["success" => true, "message" => "Password Updated"]);
             } else {
                 return response()->json(["success" => false, "message" => "Invalid Password"], 401);
