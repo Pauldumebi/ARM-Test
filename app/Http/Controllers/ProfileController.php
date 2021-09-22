@@ -8,8 +8,6 @@ use Illuminate\Support\Facades\DB;
 
 class ProfileController extends Controller
 {
-
-
     private function isAdmin($token)
     {
         // Checks if token has admin privileges and return companyID of Admin
