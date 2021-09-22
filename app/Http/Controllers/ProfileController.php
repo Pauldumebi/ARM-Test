@@ -34,17 +34,14 @@ class ProfileController extends Controller
 
     public function getUserDetails($token)
     {
-        try {
-            $userExists = $this->userExists($token);
-            // Checks if a user really exists
-            if ($userExists["userExists"]) {
-                $userDetails = DB::table("users")->join("company", "company.companyID", "=", "users.companyID")->where("token", "=", $token)->select(["users.userFirstName", "users.userLastName", "users.userEmail", "company.companyName", "company.companyAddress1"])->get();
-                return response()->json(["success" => true, "userDetails" => $userDetails]);
-            } else {
-                return response()->json(["success" => false, "message" => "Users does not exist"], 400);
-            }
-        } catch (\Illuminate\Database\QueryException $ex) {
-            return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
+
+        $userExists = $this->userExists($token);
+        // Checks if a user really exists
+        if ($userExists["userExists"]) {
+            $userDetails = DB::table("users")->join("company", "company.companyID", "=", "users.companyID")->where("token", "=", $token)->select(["users.userFirstName", "users.userLastName", "users.userEmail", "company.companyName", "company.companyAddress1"])->get();
+            return response()->json(["success" => true, "userDetails" => $userDetails]);
+        } else {
+            return response()->json(["success" => false, "message" => "Users does not exist"], 400);
         }
     }
 

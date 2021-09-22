@@ -26,18 +26,15 @@ class CoursesController extends Controller
 
     public function getCourses()
     {
-        try {
-            $courses = DB::table("course")->get();
 
-            if (count($courses) > 0) {
-                $bundles = DB::table("courseBundle")->join("bundle", "courseBundle.bundleID", "=", "bundle.bundleID")->select(["courseBundle.bundleID", "bundle.bundleTitle", "bundle.bundleDescription", "bundle.price", "bundle.createDate"])->selectRaw("COUNT(courseBundle.courseID) AS CourseCount")->groupBy("courseBundle.bundleID")->get();
+        $courses = DB::table("course")->get();
 
-                return response()->json(["success" => true, "courses" => $courses, "bundles" => $bundles]);
-            } else {
-                return response()->json(["success" => true, "message" => "No Courses Found"]);
-            }
-        } catch (\Illuminate\Database\QueryException $ex) {
-            return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
+        if (count($courses) > 0) {
+            $bundles = DB::table("courseBundle")->join("bundle", "courseBundle.bundleID", "=", "bundle.bundleID")->select(["courseBundle.bundleID", "bundle.bundleTitle", "bundle.bundleDescription", "bundle.price", "bundle.createDate"])->selectRaw("COUNT(courseBundle.courseID) AS CourseCount")->groupBy("courseBundle.bundleID")->get();
+
+            return response()->json(["success" => true, "courses" => $courses, "bundles" => $bundles]);
+        } else {
+            return response()->json(["success" => true, "courses" => [], "message" => "No Courses Found"]);
         }
     }
 
@@ -46,37 +43,34 @@ class CoursesController extends Controller
         $token = $req->token;
         $courseID = $req->courseID;
 
-        try {
-            $user = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 2)->get();
-            if (count($user) === 1) {
 
-                if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
-                    $userID = $user[0]->userID;
+        $user = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 2)->get();
+        if (count($user) === 1) {
 
-                    if (DB::table("courseEnrolment")->where("userID", "=", $userID)->where("courseID", "=", $courseID)->doesntExist()) {
+            if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
+                $userID = $user[0]->userID;
 
-                        $companyID = $user[0]->companyID;
+                if (DB::table("courseEnrolment")->where("userID", "=", $userID)->where("courseID", "=", $courseID)->doesntExist()) {
 
-                        $seats = $this->getSeats($companyID, $courseID);
+                    $companyID = $user[0]->companyID;
 
-                        if ($seats["Assigned"] < $seats["Total"]) {
-                            DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID]);
+                    $seats = $this->getSeats($companyID, $courseID);
 
-                            return response()->json(["success" => true, "message" => "Enrollment Successful"]);
-                        }
+                    if ($seats["Assigned"] < $seats["Total"]) {
+                        DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID]);
 
-                        return response()->json(["success" => false, "message" => "No more Course Seats!"], 400);
-                    } else {
-                        return response()->json(["success" => true, "message" => "Already Enrolled"]);
+                        return response()->json(["success" => true, "message" => "Enrollment Successful"]);
                     }
+
+                    return response()->json(["success" => false, "message" => "No more Course Seats!"], 400);
                 } else {
-                    return response()->json(["success" => false, "message" => "Course does not exist"], 400);
+                    return response()->json(["success" => true, "message" => "Already Enrolled"]);
                 }
             } else {
-                return response()->json(["success" => false, "message" => "Users does not exist"], 400);
+                return response()->json(["success" => false, "message" => "Course does not exist"], 400);
             }
-        } catch (\Illuminate\Database\QueryException $ex) {
-            return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
+        } else {
+            return response()->json(["success" => false, "message" => "Users does not exist"], 400);
         }
     }
 
@@ -87,31 +81,28 @@ class CoursesController extends Controller
         // $seats = $req->seats;
         $seats = isset($req->seats) ? $req->seats : 1;
 
-        try {
-            $user = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->get();
-            if (count($user) === 1) {
 
-                if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
-                    $userID = $user[0]->userID;
-                    $companyID = $user[0]->companyID;
+        $user = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->get();
+        if (count($user) === 1) {
 
-                    if (DB::table("courseEnrolment")->where("userID", "=", $userID)->where("courseID", "=", $courseID)->doesntExist()) {
+            if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
+                $userID = $user[0]->userID;
+                $companyID = $user[0]->companyID;
 
-                        DB::table("courseSeat")->insert(["courseID" => $courseID, "companyID" => $companyID, "seats" => $seats]);
-                        DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID]);
+                if (DB::table("courseEnrolment")->where("userID", "=", $userID)->where("courseID", "=", $courseID)->doesntExist()) {
 
-                        return response()->json(["success" => true, "message" => "Enrollment Successful"]);
-                    } else {
-                        return response()->json(["success" => true, "message" => "Already Enrolled"]);
-                    }
+                    DB::table("courseSeat")->insert(["courseID" => $courseID, "companyID" => $companyID, "seats" => $seats]);
+                    DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID]);
+
+                    return response()->json(["success" => true, "message" => "Enrollment Successful"]);
                 } else {
-                    return response()->json(["success" => false, "message" => "Course does not exist"]);
+                    return response()->json(["success" => true, "message" => "Already Enrolled"]);
                 }
             } else {
-                return response()->json(["success" => false, "message" => "Users does not exist"]);
+                return response()->json(["success" => false, "message" => "Course does not exist"]);
             }
-        } catch (\Illuminate\Database\QueryException $ex) {
-            return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
+        } else {
+            return response()->json(["success" => false, "message" => "Users does not exist"]);
         }
     }
 
@@ -119,16 +110,13 @@ class CoursesController extends Controller
     {
         $token = $req->token;
 
-        try {
-            $query = DB::table("courseEnrolment")->join("course", "courseEnrolment.courseID", "=", "course.courseID")->join("users", "courseEnrolment.userID", "=", "users.userID")->select(["course.courseID", "course.courseName", "course.courseDescription", "course.duration", "course.courseType", "courseEnrolment.enrolDate"])->where("users.token", "=", $token)->get();
 
-            if (count($query) > 0) {
-                return response()->json(["success" => true, "enrolledCourses" => $query]);
-            } else {
-                return response()->json(["success" => true, "message" => "No Enrolled Courses"]);
-            }
-        } catch (\Illuminate\Database\QueryException $ex) {
-            return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
+        $query = DB::table("courseEnrolment")->join("course", "courseEnrolment.courseID", "=", "course.courseID")->join("users", "courseEnrolment.userID", "=", "users.userID")->select(["course.courseID", "course.courseName", "course.courseDescription", "course.duration", "course.courseType", "courseEnrolment.enrolDate"])->where("users.token", "=", $token)->get();
+
+        if (count($query) > 0) {
+            return response()->json(["success" => true, "enrolledCourses" => $query]);
+        } else {
+            return response()->json(["success" => true, "enrolledCourses" => [], "message" => "No Enrolled Courses"]);
         }
     }
 
@@ -136,25 +124,22 @@ class CoursesController extends Controller
     {
         $courseID = $req->courseID;
 
-        try {
-            $query = DB::table("course")->where("courseID", "=", $courseID)->get();
-            if (count($query) > 0) {
-                $courseName = $query[0]->courseName;
-                $modules = DB::table("module")->where("courseID", "=", $courseID)->get();
-                $i = -1;
-                foreach ($modules as $module) {
-                    $i++;
-                    $result[$i]["moduleName"] = $module->moduleName;
-                    $topics = DB::table("topic")->where("moduleID", "=", $module->moduleID)->select("topicID", "topicName", "duration")->get();
-                    $result[$i]["topics"] = $topics;
-                }
 
-                return response()->json(["success" => true, "courseName" => $courseName, "modulesTopics" => $result]);
-            } else {
-                return response()->json(["success" => false, "message" => "Course Does not Exist"], 400);
+        $query = DB::table("course")->where("courseID", "=", $courseID)->get();
+        if (count($query) > 0) {
+            $courseName = $query[0]->courseName;
+            $modules = DB::table("module")->where("courseID", "=", $courseID)->get();
+            $i = -1;
+            foreach ($modules as $module) {
+                $i++;
+                $result[$i]["moduleName"] = $module->moduleName;
+                $topics = DB::table("topic")->where("moduleID", "=", $module->moduleID)->select("topicID", "topicName", "duration")->get();
+                $result[$i]["topics"] = $topics;
             }
-        } catch (\Illuminate\Database\QueryException $ex) {
-            return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
+
+            return response()->json(["success" => true, "courseName" => $courseName, "modulesTopics" => $result]);
+        } else {
+            return response()->json(["success" => false, "message" => "Course Does not Exist"], 400);
         }
     }
 
@@ -163,20 +148,17 @@ class CoursesController extends Controller
         $token = $req->token;
         $courseID = $req->courseID;
 
-        try {
-            $user = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->get();
-            if (count($user) === 1) {
-                $companyID = $user[0]->companyID;
+
+        $user = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->get();
+        if (count($user) === 1) {
+            $companyID = $user[0]->companyID;
 
 
-                $seats = $this->getSeats($companyID, $courseID);
+            $seats = $this->getSeats($companyID, $courseID);
 
-                return response()->json(["success" => true, "data" => ["Totals Seats" => $seats["Total"], "Assigned Seats" => $seats["Assigned"]]]);
-            } else {
-                return response()->json(["success" => false, "message" => "Users not Admin"], 401);
-            }
-        } catch (\Illuminate\Database\QueryException $ex) {
-            return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
+            return response()->json(["success" => true, "data" => ["Totals Seats" => $seats["Total"], "Assigned Seats" => $seats["Assigned"]]]);
+        } else {
+            return response()->json(["success" => false, "message" => "Users not Admin"], 401);
         }
     }
 
@@ -184,29 +166,26 @@ class CoursesController extends Controller
     {
         // Think this should only contain courses
         $token = $req->token;
-        try {
-            $user = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->get();
-            if (count($user) === 1) {
-                $courses = DB::table("course")->get();
 
-                if (count($courses) > 0) {
-                    $i = 0;
-                    foreach ($courses as $course) {
-                        if (DB::table("courseEnrolment")->join("course", "courseEnrolment.courseID", "=", "course.courseID")->join("users", "courseEnrolment.userID", "=", "users.userID")->select(["course.courseID", "course.courseName", "course.courseDescription", "course.duration", "course.courseType", "courseEnrolment.enrolDate"])->where("users.token", "=", $token)->where("course.courseID", "=", $course->courseID)->exists()) {
-                            $course->enrolled = true;
-                        } else {
-                            $course->enrolled = false;
-                        }
+        $user = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->get();
+        if (count($user) === 1) {
+            $courses = DB::table("course")->get();
+
+            if (count($courses) > 0) {
+                $i = 0;
+                foreach ($courses as $course) {
+                    if (DB::table("courseEnrolment")->join("course", "courseEnrolment.courseID", "=", "course.courseID")->join("users", "courseEnrolment.userID", "=", "users.userID")->select(["course.courseID", "course.courseName", "course.courseDescription", "course.duration", "course.courseType", "courseEnrolment.enrolDate"])->where("users.token", "=", $token)->where("course.courseID", "=", $course->courseID)->exists()) {
+                        $course->enrolled = true;
+                    } else {
+                        $course->enrolled = false;
                     }
-                    return response()->json(["success" => true, "courses" => $courses]);
-                } else {
-                    return response()->json(["success" => true, "message" => "No Courses Found"]);
                 }
+                return response()->json(["success" => true, "courses" => $courses]);
             } else {
-                return response()->json(["success" => false, "message" => "Users Not Admin"]);
+                return response()->json(["success" => true, "message" => "No Courses Found"]);
             }
-        } catch (\Illuminate\Database\QueryException $ex) {
-            return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
+        } else {
+            return response()->json(["success" => false, "message" => "Users Not Admin"]);
         }
     }
 }
