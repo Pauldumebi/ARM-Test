@@ -205,9 +205,9 @@ class GroupController extends Controller
                     // Checks if the group is really assigned to the course
                     if (DB::table("groupEnrolment")->where("courseID", "=", $courseid)->where("groupID", "=", $groupid)->exists()) {
 
-                        DB::table("courseEnrolment")->where("groupid", "=", $groupid)->delete();
+                        DB::table("courseEnrolment")->where("groupid", "=", $groupid)->where("courseID", "=", $courseid)->delete();
 
-                        DB::table("groupEnrolment")->where("groupid", "=", $groupid)->delete();
+                        DB::table("groupEnrolment")->where("groupid", "=", $groupid)->where("courseID", "=", $courseid)->delete();
                         return response()->json(["success" => true, "message" => "Unassignment Successful"]);
                     } else {
                         return response()->json(["success" => false, "message" => "Course not assigned to group"], 400);
