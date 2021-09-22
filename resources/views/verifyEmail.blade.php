@@ -154,7 +154,7 @@
                       </table>
                       <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Once verified, you can access your resources on CCLearning Platform.</p>
                       <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Button not working? Paste the following link into your browser: {{ $details['link'] }} </p>
-                      < style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">You’re receiving this email because you recently created a new account or added a new email address on our CCLearning platform. If this wasn’t you, please ignore this email.</p>
+                      <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">You’re receiving this email because you recently created a new account or added a new email address on our CCLearning platform. If this wasn’t you, please ignore this email.</p>
                       <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0;">Regards,</p>
                       <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0;">Funke Olajide</p>
                       <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0;">Customer Services Executive</p>

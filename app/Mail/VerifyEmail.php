@@ -30,6 +30,6 @@ class VerifyEmail extends Mailable
     public function build()
     {
         return $this->subject('Mail from CCLearning Platform')
-                    ->view('emails.verifyEmail');
+                    ->view('verifyEmail');
     }
 }

@@ -15,7 +15,7 @@ class AuthController extends Controller
             if (rand(0, 1) == 0) {
                 $code .= chr(rand(97, 122)); // ASCII code from **a(97)** to **z(122)**
             } else {
-                $code .= rand(0, 9); // Numbers!!
+                $code .= rand(0, 32); // Numbers!!
             }
             $total++;
         } while ($total < $length);
@@ -25,9 +25,9 @@ class AuthController extends Controller
     // each endpoint will have a function
     public function signup(Request $req)
     {
-        $comName = $req->companyName;
-        $comAdr = $req->companyAddress;
-        $comEmailSuffix = $req->companyEmailSuffix;
+        $companyName = $req->companyName;
+        $companyAddress = $req->companyAddress;
+        $companyEmailSuffix = $req->companyEmailSuffix;
         $firstname = $req->firstName;
         $lastname = $req->lastName;
         $email = $req->email;
@@ -35,21 +35,19 @@ class AuthController extends Controller
         $tel = $req->tel;
         $hash = password_hash($req->password, PASSWORD_DEFAULT);
         $token = $this->RandomCode();
+        $email_token = $this->RandomCode();
 
         try {
-            $this-> sendEmail($firstname, $email);
-            return response()->json(["success" => true, "data" => 'Email sent']);
-            if (DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->where("users.userEmail", "=", $email)->orWhere("company.companyName", "=", $comName, "or")->orWhere("company.emailSuffix", "=", $comEmailSuffix)->doesntExist()) {
-
+            if (DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->where("users.userEmail", "=", $email)->orWhere("company.companyName", "=", $companyName, "or")->orWhere("company.emailSuffix", "=", $companyEmailSuffix)->doesntExist()) {
                 $id = DB::table("users")->insertGetId(
-                    ["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userPassword" => $hash, "userRoleID" => 1, "token" => $token],
+                    ["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userPassword" => $hash, "userRoleID" => 1, "token" => $token, "email_token"=> $email_token, "verified_status" => "unverified"],
                 );
 
                 $companyID = DB::table("company")->insertGetId([
-                    "companyName" => $comName,
-                    "companyAddress1" => $comAdr,
+                    "companyName" => $companyName,
+                    "companyAddress1" => $companyAddress,
                     "companyAdminID" => $id,
-                    "emailSuffix" => $comEmailSuffix,
+                    "emailSuffix" => $companyEmailSuffix,
                     "companyAdminRole" => $adminRole
                 ]);
 
@@ -58,28 +56,26 @@ class AuthController extends Controller
                 ]);
 
                 $query = DB::table("users")->where("userEmail", "=", $email)->select(["token"])->get();
-                // $this-> sendEmail($firstname, $email);
                 $userData = ["token" => $query[0]->token, "role" => "admin"];
-                return response()->json(["success" => true, "data" => $userData]);
+                $this-> sendEmail($firstname, $email, $email_token);
+                return response()->json(["success" => true, "data" => $userData, "message"=> 'Email sent, please check your inbox']);
             } else {
                 return response()->json(["success" => false, "message" => "Company or Admin User Already Exist"], 401);
             }
-            // return response()->json(["success" => true, "data" => $users], 200);
         } catch (\Illuminate\Database\QueryException $ex) {
             return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
         }
     }
 
-    public function sendEmail ($firstname, $email) {
+    private function sendEmail ($firstname, $email, $email_token) {
         $details = [
             'name' => $firstname,
             'email' => $email,
-            'link' => 'nimdee.com',
-            'websiteLink' => 'nimdee.com'
+            'link' => 'https://learningplatform.sandbox.9ijakids.com/verifyemail?'.$email_token,
+            'websiteLink' => 'https://learningplatform.sandbox.9ijakids.com'
         ];
    
-        \Mail::to('paulchukwurah7@gmail.com')->send(new \App\Mail\VerifyEmail($details));
-        return response()->json(["success" => true, "message" => 'Email is Sent'], 200);
+        \Mail::to($email)->send(new \App\Mail\VerifyEmail($details));
     }
 
     public function login(Request $req)
