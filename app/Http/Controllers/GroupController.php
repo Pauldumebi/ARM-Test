@@ -10,7 +10,7 @@ class GroupController extends Controller
 
     private function isAdmin($token)
     {
-        // Checks if token has admin priviledges and returns companyID of Admin
+        // Checks if token has admin privileges and return companyID of Admin
         if (DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->exists()) {
             $user = DB::table("users")->where("token", "=", $token)->get();
             return ["isAdmin" => true, "companyID" => $user[0]->companyID, "userID" => $user[0]->userID];

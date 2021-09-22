@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CoursesController;
 use App\Http\Controllers\GroupController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -65,4 +66,10 @@ Route::prefix("v1")->group(function () {
     Route::post("/profile/{token}", [ProfileController::class, "updateUserDetails"]);
     Route::post("/company-profile/{token}", [ProfileController::class, "updateCompanyDetails"]);
     Route::post("/password/{token}", [ProfileController::class, "updatePassword"]);
+});
+
+// Order Page Controller Endpoints
+Route::prefix("v1")->group(function () {
+    Route::get("/orders/{token}", [OrderController::class, "getOrders"]);
+    Route::post("/orders", [OrderController::class, "checkoutOrders"]);
 });
