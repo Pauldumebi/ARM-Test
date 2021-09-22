@@ -34,29 +34,26 @@ class UserController extends Controller
         $hash = password_hash("LearningPlatform", PASSWORD_DEFAULT);
         $newtoken = $this->RandomCode();
 
-        try {
-            if (DB::table("users")->where("userEmail", "=", $email)->doesntExist()) {
 
-                $query = DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->select(["company.emailSuffix", "company.companyID"])->where("users.token", "=", $token)->where("users.userRoleID", "=", 1)->get();
+        if (DB::table("users")->where("userEmail", "=", $email)->doesntExist()) {
 
-                if (count($query) > 0) {
-                    if ($query[0]->emailSuffix === $email_suffix) {
-                        $companyID = $query[0]->companyID;
+            $query = DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->select(["company.emailSuffix", "company.companyID"])->where("users.token", "=", $token)->where("users.userRoleID", "=", 1)->get();
 
-                        DB::table("users")->insert(["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userPassword" => $hash, "userRoleID" => 2, "companyID" => $companyID, "token" => $newtoken]);
+            if (count($query) > 0) {
+                if ($query[0]->emailSuffix === $email_suffix) {
+                    $companyID = $query[0]->companyID;
 
-                        return response()->json(["success" => true, "message" => "User Account Created"]);
-                    } else {
-                        return response()->json(["success" => false, "message" => "User Email not Company Email"], 400);
-                    }
+                    DB::table("users")->insert(["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userPassword" => $hash, "userRoleID" => 2, "companyID" => $companyID, "token" => $newtoken]);
+
+                    return response()->json(["success" => true, "message" => "User Account Created"]);
                 } else {
-                    return response()->json(["success" => false, "message" => "Not Admin User"], 401);
+                    return response()->json(["success" => false, "message" => "User Email not Company Email"], 400);
                 }
             } else {
-                return response()->json(["success" => false, "message" => "User Already Registered"], 400);
+                return response()->json(["success" => false, "message" => "Not Admin User"], 401);
             }
-        } catch (\Illuminate\Database\QueryException $ex) {
-            return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
+        } else {
+            return response()->json(["success" => false, "message" => "User Already Registered"], 400);
         }
     }
 
@@ -64,24 +61,21 @@ class UserController extends Controller
     {
 
         $token = $req->token;
-        try {
-            $query = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->select(["companyID"])->get();
 
-            if (count($query) > 0) {
-                $companyID = $query[0]->companyID;
+        $query = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->select(["companyID"])->get();
 
-                $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->select("userFirstName", "userLastname", "userEmail", "token AS usertoken")->get();
+        if (count($query) > 0) {
+            $companyID = $query[0]->companyID;
 
-                if (count($users) > 0) {
-                    return response()->json(["success" => true, "data" => $users]);
-                } else {
-                    return response()->json(["success" => true, "message" => "No Users Available"]);
-                }
+            $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->select("userFirstName", "userLastname", "userEmail", "token AS usertoken")->get();
+
+            if (count($users) > 0) {
+                return response()->json(["success" => true, "users" => $users]);
             } else {
-                return response()->json(["success" => false, "message" => "Not Admin User"], 401);
+                return response()->json(["success" => true, "users" => [], "message" => "No Users Available"]);
             }
-        } catch (\Illuminate\Database\QueryException $ex) {
-            return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
+        } else {
+            return response()->json(["success" => false, "message" => "Not Admin User"], 401);
         }
     }
 }

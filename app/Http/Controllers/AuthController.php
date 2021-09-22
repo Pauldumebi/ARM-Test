@@ -37,6 +37,15 @@ class AuthController extends Controller
         $token = $this->RandomCode();
         $email_token = $this->RandomCode();
 
+<<<<<<< HEAD
+
+
+        if (DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->where("users.userEmail", "=", $email)->orWhere("company.companyName", "=", $comName, "or")->orWhere("company.emailSuffix", "=", $comEmailSuffix)->doesntExist()) {
+
+            $id = DB::table("users")->insertGetId(
+                ["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userPassword" => $hash, "userRoleID" => 1, "token" => $token],
+            );
+=======
         try {
             if (DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->where("users.userEmail", "=", $email)->orWhere("company.companyName", "=", $companyName, "or")->orWhere("company.emailSuffix", "=", $companyEmailSuffix)->doesntExist()) {
                 $id = DB::table("users")->insertGetId(
@@ -50,11 +59,28 @@ class AuthController extends Controller
                     "emailSuffix" => $companyEmailSuffix,
                     "companyAdminRole" => $adminRole
                 ]);
+>>>>>>> 7f6a9f5a19516c4c9ee9c272d0fd076e00895080
 
-                $updatedID = DB::table("users")->where("userEmail", "=", $email)->update([
-                    "companyID" => $companyID
-                ]);
+            $companyID = DB::table("company")->insertGetId([
+                "companyName" => $comName,
+                "companyAddress1" => $comAdr,
+                "companyAdminID" => $id,
+                "emailSuffix" => $comEmailSuffix,
+                "companyAdminRole" => $adminRole
+            ]);
 
+<<<<<<< HEAD
+            $updatedID = DB::table("users")->where("userEmail", "=", $email)->update([
+                "companyID" => $companyID
+            ]);
+
+            $query = DB::table("users")->where("userEmail", "=", $email)->select(["token"])->get();
+
+            $userData = ["token" => $query[0]->token, "role" => "admin"];
+            return response()->json(["success" => true, "data" => $userData]);
+        } else {
+            return response()->json(["success" => false, "message" => "Comapany or Admin User Already Exist"], 401);
+=======
                 $query = DB::table("users")->where("userEmail", "=", $email)->select(["token"])->get();
                 $userData = ["token" => $query[0]->token, "role" => "admin"];
                 $this-> sendEmail($firstname, $email, $email_token);
@@ -64,7 +90,10 @@ class AuthController extends Controller
             }
         } catch (\Illuminate\Database\QueryException $ex) {
             return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
+>>>>>>> 7f6a9f5a19516c4c9ee9c272d0fd076e00895080
         }
+        // return response()->json(["success" => true, "data" => $users], 200);
+
     }
 
     private function sendEmail ($firstname, $email, $email_token) {
@@ -83,24 +112,21 @@ class AuthController extends Controller
         $email = $req->email;
         $password = $req->password;
 
-        try {
-            $query = DB::table("users")->join("role", "users.userRoleID", "=", "role.roleID")->where("users.userEmail", "=", $email)->select(["users.*", "role.roleName"])->get();
 
-            if (count($query) === 1) {
-                // $realPassword = $users["password"];
-                $user = $query[0];
-                $pass_ok = password_verify($password, $user->userPassword);
-                if ($pass_ok) {
-                    $userData = ["token" => $user->token, "role" => $user->roleName,];
-                    return response()->json(["success" => true, "data" => $userData], 200);
-                } else {
-                    return response()->json(["success" => false, "message" => "Invalid email or password"], 401);
-                }
+        $query = DB::table("users")->join("role", "users.userRoleID", "=", "role.roleID")->where("users.userEmail", "=", $email)->select(["users.*", "role.roleName"])->get();
+
+        if (count($query) === 1) {
+            // $realPassword = $users["password"];
+            $user = $query[0];
+            $pass_ok = password_verify($password, $user->userPassword);
+            if ($pass_ok) {
+                $userData = ["token" => $user->token, "role" => $user->roleName,];
+                return response()->json(["success" => true, "data" => $userData], 200);
             } else {
-                return response()->json(["success" => false, "message" => "User not registered"], 401);
+                return response()->json(["success" => false, "message" => "Invalid email or password"], 401);
             }
-        } catch (\Illuminate\Database\QueryException $ex) {
-            return response()->json(["success" => false, "message" => $ex->getMessage()], 500);
+        } else {
+            return response()->json(["success" => false, "message" => "User not registered"], 401);
         }
     }
 }
