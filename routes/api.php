@@ -23,11 +23,6 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 
-// Route::get("/test", function (Request $request) {
-//     return "Flex";
-//     //for reasons i don't know you have sent "Accept: application/json" on POSTMAN to get a good response
-// });
-
 // Auth Controller Endpoints
 Route::prefix("v1")->group(function () {
     Route::post("/signup", [AuthController::class, "signup"]);

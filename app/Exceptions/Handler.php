@@ -5,6 +5,7 @@ namespace App\Exceptions;
 use ErrorException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Swift_RfcComplianceException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Throwable;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -70,6 +71,15 @@ class Handler extends ExceptionHandler
         });
 
         $this->renderable(function (ErrorException $e, $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    "success" => false,
+                    "message" => $e->getMessage()
+                ], 500);
+            }
+        });
+
+        $this->renderable(function (Swift_RfcComplianceException $e, $request) {
             if ($request->is('api/*')) {
                 return response()->json([
                     "success" => false,
