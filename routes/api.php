@@ -5,6 +5,7 @@ use App\Http\Controllers\CoursesController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SiteAdminController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -75,4 +76,10 @@ Route::prefix("v1")->group(function () {
 Route::prefix("v1")->group(function () {
     Route::get("/orders/{token}", [OrderController::class, "getOrders"]);
     Route::post("/orders", [OrderController::class, "checkoutOrders"]);
+});
+
+// Site Admin Page Controller Endpoints
+Route::prefix("v1")->group(function () {
+    Route::get("/registered-companies", [SiteAdminController::class, "getCompanies"]);
+    Route::post("/registered-users", [SiteAdminController::class, "getUsers"]);
 });
