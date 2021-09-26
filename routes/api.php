@@ -81,5 +81,5 @@ Route::prefix("v1")->group(function () {
 // Site Admin Page Controller Endpoints
 Route::prefix("v1")->group(function () {
     Route::get("/registered-companies", [SiteAdminController::class, "getCompanies"]);
-    Route::post("/registered-users", [SiteAdminController::class, "getUsers"]);
+    Route::get("/registered-users", [SiteAdminController::class, "getUsers"]);
 });
