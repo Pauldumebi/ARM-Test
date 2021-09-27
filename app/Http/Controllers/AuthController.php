@@ -23,6 +23,28 @@ class AuthController extends Controller
         return $code;
     }
 
+    private function sendVerifyEmail($firstname, $email, $email_token)
+    {
+        $details = [
+            'name' => $firstname,
+            'email' => $email,
+            'link' => 'https://learningplatform.sandbox.9ijakids.com/verifyemail?' . $email_token,
+            'websiteLink' => 'https://learningplatform.sandbox.9ijakids.com'
+        ];
+
+        Mail::to($email)->send(new \App\Mail\VerifyEmail($details));
+    }
+    
+    private function sendForgotPasswordEmail($email, $forgot_password_token)
+    {
+        $details = [
+            'email' => $email,
+            'resetPasswordLink' => 'https://learningplatform.sandbox.9ijakids.com/forgot-password?' . $forgot_password_token,
+            'websiteLink' => 'https://learningplatform.sandbox.9ijakids.com'
+        ];
+        Mail::to($email)->send(new \App\Mail\ForgotPassword($details));
+    }
+
     // each endpoint will have a function
     public function signup(Request $req)
     {
@@ -58,18 +80,6 @@ class AuthController extends Controller
         } else {
             return response()->json(["success" => false, "message" => "Company or Admin User Already Exist"], 401);
         }
-    }
-
-    private function sendVerifyEmail($firstname, $email, $email_token)
-    {
-        $details = [
-            'name' => $firstname,
-            'email' => $email,
-            'link' => 'https://learningplatform.sandbox.9ijakids.com/verifyemail?' . $email_token,
-            'websiteLink' => 'https://learningplatform.sandbox.9ijakids.com'
-        ];
-
-        \Mail::to($email)->send(new \App\Mail\VerifyEmail($details));
     }
 
     public function verifyEmail($email_token)
@@ -118,17 +128,6 @@ class AuthController extends Controller
         } else {
             return response()->json(["success" => false, "message" => "Users does not exist"], 400);
         }
-    }
-
-    private function sendForgotPasswordEmail($email, $forgot_password_token)
-    {
-        $details = [
-            'email' => $email,
-            'resetPasswordLink' => 'https://learningplatform.sandbox.9ijakids.com/forgot-password?' . $forgot_password_token,
-            'websiteLink' => 'https://learningplatform.sandbox.9ijakids.com'
-        ];
-
-        \Mail::to($email)->send(new \App\Mail\ForgotPassword($details));
     }
 
     public function updateForgotPassword(Request $req)

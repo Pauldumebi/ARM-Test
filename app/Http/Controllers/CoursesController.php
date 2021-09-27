@@ -4,9 +4,21 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class CoursesController extends Controller
 {
+
+
+    private function assignedACourse($email, $firstname)
+    {
+        $details = [
+            'name' => $firstname,
+            'email' => $email,
+            'websiteLink' => 'https://learningplatform.sandbox.9ijakids.com'
+        ];
+        Mail::to($email)->send(new \App\Mail\AssignedACourse($details));
+    }
 
     private function getSeats($companyID, $courseID)
     {
@@ -58,6 +70,8 @@ class CoursesController extends Controller
 
                     if ($seats["Assigned"] < $seats["Total"]) {
                         DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID]);
+
+                        $this -> assignedACourse($user[0]->userFirstName, $user[0]->userEmail);
 
                         return response()->json(["success" => true, "message" => "Enrollment Successful"]);
                     }
