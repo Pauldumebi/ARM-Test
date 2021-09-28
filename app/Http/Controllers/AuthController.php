@@ -28,18 +28,18 @@ class AuthController extends Controller
         $details = [
             'name' => $firstname,
             'email' => $email,
-            'link' => 'https://learningplatform.sandbox.9ijakids.com/verifyemail?' . $email_token,
+            'link' => 'https://learningplatform.sandbox.9ijakids.com/verifyemail/' . $email_token,
             'websiteLink' => 'https://learningplatform.sandbox.9ijakids.com'
         ];
 
         Mail::to($email)->send(new \App\Mail\VerifyEmail($details));
     }
-    
+
     private function sendForgotPasswordEmail($email, $forgot_password_token)
     {
         $details = [
             'email' => $email,
-            'resetPasswordLink' => 'https://learningplatform.sandbox.9ijakids.com/forgot-password?' . $forgot_password_token,
+            'resetPasswordLink' => 'https://learningplatform.sandbox.9ijakids.com/forgot-password/' . $forgot_password_token,
             'websiteLink' => 'https://learningplatform.sandbox.9ijakids.com'
         ];
         Mail::to($email)->send(new \App\Mail\ForgotPassword($details));
@@ -65,13 +65,15 @@ class AuthController extends Controller
                 ["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userPassword" => $hash, "userRoleID" => 1, "token" => $token, "email_token" => $email_token, "verified_status" => "unverified"],
             );
 
-            DB::table("company")->insertGetId([
+            $companyID = DB::table("company")->insertGetId([
                 "companyName" => $companyName,
                 "companyAddress1" => $companyAddress,
                 "companyAdminID" => $id,
                 "emailSuffix" => $companyEmailSuffix,
                 "companyAdminRole" => $adminRole
             ]);
+
+            DB::table("users")->where("userID", "=", $id)->update(["companyID" => $companyID]);
 
             $query = DB::table("users")->where("userEmail", "=", $email)->select(["token"])->get();
             $userData = ["token" => $query[0]->token, "role" => "admin"];
@@ -84,9 +86,8 @@ class AuthController extends Controller
 
     public function verifyEmail($email_token)
     {
-        $tokenExists = DB::table('users')->where('email_token', '=', $email_token);
-        if ($tokenExists) {
-            DB::table("users")->where("email_token", "=", $email_token)->update(["email_token" => ""]);
+        if (DB::table('users')->where('email_token', '=', $email_token)->exists()) {
+            DB::table("users")->where("email_token", "=", $email_token)->update(["email_token" => "", "verified_status" => "verified"]);
             return response()->json(["success" => true, "message" => "Email verified, please login"]);
         } else {
             return response()->json(["success" => false, "message" => "Link has expired please login"], 400);
@@ -120,9 +121,9 @@ class AuthController extends Controller
     {
         $email = $req->email;
         $forgot_password_token = $this->RandomCode();
-        $userExists = DB::table('users')->where('userEmail', '=', $email);
-        if ($userExists) {
-            DB::table('users')->where('userEmail', '=', $email)->update(["forgot_password_token", $forgot_password_token]);
+        // $userExists = DB::table('users')->where('userEmail', '=', $email);
+        if (DB::table('users')->where('userEmail', '=', $email)->exists()) {
+            DB::table('users')->where('userEmail', '=', $email)->update(["forgot_password_token" => $forgot_password_token]);
             $this->sendForgotPasswordEmail($email, $forgot_password_token);
             return response()->json(["success" => true, "message" => "An email has been sent to you."]);
         } else {
@@ -134,8 +135,8 @@ class AuthController extends Controller
     {
         $token = $req->token;
         $newPassword = $req->newPassword;
-        $tokenExists = DB::table('users')->where('forgot_password_token', '=', $token);
-        if ($tokenExists) {
+
+        if (DB::table('users')->where('forgot_password_token', '=', $token)->exists()) {
             $hash = password_hash($newPassword, PASSWORD_DEFAULT);
             DB::table("users")->where("forgot_password_token", "=", $token)->update(["userPassword" => $hash, "forgot_password_token" => ""]);
             return response()->json(["success" => true, "message" => "password reset successful"]);
