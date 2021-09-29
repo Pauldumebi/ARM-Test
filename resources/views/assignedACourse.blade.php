@@ -4,7 +4,8 @@
 <head>
   <meta name="viewport" content="width=device-width">
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  <title>Verify Email</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <title></title>
   <style>
     /* -------------------------------------
         INLINED WITH htmlemail.io/inline
@@ -84,14 +85,14 @@
         line-height: 100%;
       }
 
-      .apple-link a {
+      /* .apple-link a {
         color: inherit !important;
         font-family: inherit !important;
         font-size: inherit !important;
         font-weight: inherit !important;
         line-height: inherit !important;
         text-decoration: none !important;
-      }
+      } */
 
       #MessageViewBody a {
         color: inherit;
@@ -109,6 +110,34 @@
       .btn-primary a:hover {
         background-color: #34495e !important;
         border-color: #34495e !important;
+      }
+
+      .facebook {
+        background: #fff;
+        border-radius: 9%;
+        display: block;
+        height: 100px;
+        left: 50%;
+        margin: -51px 0 0 -49px;
+        position: absolute;
+        top: 50%;
+        width: 100px; 
+      }
+      
+      .facebook:after {
+        color: #43609C;
+        content: "f";
+        display: block;
+        font-family: Facebook Letter Faces, Arial;
+        font-size: 100px;
+        font-weight: bold;
+        margin: 6% 0 0 50%; }
+      
+      .facebook:hover {
+        -moz-box-shadow: 0px 0px 7px rgba(255, 250, 250, 0.75);
+        -webkit-box-shadow: 0px 0px 7px rgba(255, 250, 250, 0.75);
+        box-shadow: 0px 0px 7px rgba(255, 250, 250, 0.90);
+        cursor: pointer;
       }
     }
   </style>
@@ -154,10 +183,10 @@
                         </tbody>
                       </table>
                       <div style="text-align: center;">
-                        <span class="apple-link" style="text-align: center;"><a href="https://twitter.com/nimdee2" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://blog.nimdee.com/wp-content/uploads/2021/03/Twitter.png" alt=""></a></span>
-                        <span class="apple-link" style="text-align: center;"><a href="http://9ijakids.com" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://blog.nimdee.com/wp-content/uploads/2021/03/facebook.png" alt=""></a></span>
-                        <span class="apple-link" style="text-align: center;"><a href="http://9ijakids.com" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://blog.nimdee.com/wp-content/uploads/2021/03/Linkedin.png" alt=""></a></span>
-                        <span class="apple-link" style="text-align: center;"><a href="https://api.whatsapp.com/send/?phone=2349033854783&text&app_absent=0" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://blog.nimdee.com/wp-content/uploads/2021/03/Whatsapp.png" alt=""></a></span>
+                        <span style="text-align: center;"><a href="" target="blank" class="facebook"> </a></span>
+                        <span style="text-align: center;"><a href="http://9ijakids.com" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"></a></span>
+                        <span style="text-align: center;"><a href="http://9ijakids.com" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"></a></span>
+                        <span style="text-align: center;"><a href="https://api.whatsapp.com/send/?phone=2349033854783&text&app_absent=0" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"></a></span>
                       </div>
                     </td>
                   </tr>
