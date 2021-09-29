@@ -82,4 +82,9 @@ Route::prefix("v1")->group(function () {
 Route::prefix("v1")->group(function () {
     Route::get("/registered-companies", [SiteAdminController::class, "getCompanies"]);
     Route::get("/registered-users", [SiteAdminController::class, "getUsers"]);
+    Route::post("/admin-course", [SiteAdminController::class, "createCourse"]);
+    Route::post("/admin-module", [SiteAdminController::class, "addModule"]);
+    Route::post("/admin-topic", [SiteAdminController::class, "addTopic"]);
+    Route::post("/test-upload", [SiteAdminController::class, "testFileUpload"]);
+    Route::post("/test-folderupload", [SiteAdminController::class, "testFolderUpload"]);
 });
