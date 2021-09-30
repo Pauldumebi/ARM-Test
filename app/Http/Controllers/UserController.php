@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
@@ -21,6 +22,18 @@ class UserController extends Controller
             $total++;
         } while ($total < $length);
         return $code;
+    }
+
+    private function sendUserCreationEmail($firstname, $email, $password)
+    {
+        $details = [
+            'name' => $firstname,
+            'password' => $password,
+            'login' => 'https://learningplatform.sandbox.9ijakids.com/login',
+
+        ];
+
+        Mail::to($email)->send(new \App\Mail\CreateUser($details));
     }
 
     public function createCompanyUser(Request $req)
@@ -44,6 +57,8 @@ class UserController extends Controller
                     $companyID = $query[0]->companyID;
 
                     DB::table("users")->insert(["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userPassword" => $hash, "userRoleID" => 2, "companyID" => $companyID, "token" => $newtoken]);
+
+                    $this->sendUserCreationEmail($firstname, $email, "LearningPlatform");
 
                     return response()->json(["success" => true, "message" => "User Account Created"]);
                 } else {

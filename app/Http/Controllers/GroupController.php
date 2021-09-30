@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+
 
 class GroupController extends Controller
 {
@@ -18,6 +20,17 @@ class GroupController extends Controller
             return ["isAdmin" => false];
         }
     }
+
+    private function assignedACourse($email, $firstname)
+    {
+        $details = [
+            'name' => $firstname,
+            'email' => $email,
+            'websiteLink' => 'https://learningplatform.sandbox.9ijakids.com'
+        ];
+        Mail::to($email)->send(new \App\Mail\AssignedACourse($details));
+    }
+
 
     private function userExists($token, $companyID)
     {
@@ -155,6 +168,7 @@ class GroupController extends Controller
                                 if (count($users) > 0) {
                                     foreach ($users as $user) {
                                         DB::table("courseEnrolment")->updateOrInsert(["userID" => $user->userID, "courseID" => $courseid], ["groupID" => $groupid]);
+                                        $this->assignedACourse($user->userFirstName, $user->userEmail);
                                     }
                                 }
                                 return response()->json(["success" => true, "message" => "Group Assigned Successfully"]);
@@ -247,10 +261,11 @@ class GroupController extends Controller
                             return response()->json(["success" => false, "message" => "No more Seats in Course(s) assigned to Group", "coursesNoSeats" => $coursesNoSeat], 400);
                         } else {
                             DB::table("userGroup")->updateOrInsert(["userID" => $userExists["userID"], "groupID" => $groupid]);
-
+                            $user = DB::table("users")->where("userID", "=", $userExists["userID"])->get();
                             // Loops through the courses attached to the Group and assigns them to the user
                             foreach ($courses as $course) {
                                 DB::table("courseEnrolment")->updateOrInsert(["userID" => $userExists["userID"], "courseID" => $course->courseID], ["groupID" => $groupid]);
+                                $this->assignedACourse($user[0]->userFirstName, $user[0]->userEmail);
                             }
                             return response()->json(["success" => true, "message" => "User Added Successfully"]);
                         }
