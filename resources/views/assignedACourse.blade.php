@@ -183,10 +183,13 @@
                         </tbody>
                       </table>
                       <div style="text-align: center;">
-                        <span style="text-align: center;"><a href="" target="blank" class="facebook"> </a></span>
-                        <span style="text-align: center;"><a href="http://9ijakids.com" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"></a></span>
-                        <span style="text-align: center;"><a href="http://9ijakids.com" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"></a></span>
-                        <span style="text-align: center;"><a href="https://api.whatsapp.com/send/?phone=2349033854783&text&app_absent=0" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"></a></span>
+                        <span class="apple-link" style="text-align: center;"><a href="https://twitter.com/nimdee2" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://learningplatform.sandbox.9ijakids.com//laravel/public/images/facebook-img.png" alt=""></a></span>
+
+                        <span class="apple-link" style="text-align: center;"><a href="http://9ijakids.com" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://learningplatform.sandbox.9ijakids.com//laravel/public/images/Instagram.png" alt=""></a></span>
+
+                        <span class="apple-link" style="text-align: center;"><a href="http://9ijakids.com" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://learningplatform.sandbox.9ijakids.com//laravel/public/images/Linkedin.png" alt=""></a></span>
+
+                        <span class="apple-link" style="text-align: center;"><a href="https://api.whatsapp.com/send/?phone=2349033854783&text&app_absent=0" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://learningplatform.sandbox.9ijakids.com//laravel/public/images/whatsapp.png" alt=""></a></span>
                       </div>
                     </td>
                   </tr>

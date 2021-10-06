@@ -8,8 +8,6 @@ use Illuminate\Support\Facades\Mail;
 
 class CoursesController extends Controller
 {
-
-
     private function assignedACourse($email, $firstname)
     {
         $details = [
@@ -200,6 +198,21 @@ class CoursesController extends Controller
             }
         } else {
             return response()->json(["success" => false, "message" => "Users Not Admin"]);
+        }
+    }
+
+    public function courseTrackerLog($token) 
+    { 
+        $user = DB::table("users")->where("token", "=", $token)->get();
+        if(count($user)===1) {
+            $query = DB::table("courseTracker")->join("users", "courseTracker.userID", "users.userID")->join("topic", "courseTracker.topicID", "=", "topic.topicID")->join("module", "topic.moduleID", "=", "module.moduleID")->where("users.token", "=", $token)->get();
+            if (count($query) > 0) {
+                return response()->json(["success" => true, "courseTrackerLog" => $query]);
+            } else {
+                return response()->json(["success" => true, "courseTrackerLog" => [], "message" => "No data found"], 204);
+            }
+        } else {
+            return response()->json(["success"=> false, "message"=>"User not found"]);
         }
     }
 }

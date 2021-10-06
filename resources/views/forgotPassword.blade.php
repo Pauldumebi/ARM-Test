@@ -182,11 +182,14 @@
                         </tbody>
                       </table>
                       <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">If this wasn't you please ignore. Thanks</p>
-                      <div style="text-align: center;">
-                        <span style="text-align: center;"><a href="" target="blank"><img src="../../public/images/facebook-img.png" alt=""></a></span>
-                        <span style="text-align: center;"><a href="" target="blank"><img src="../../public/images/Instagram.png" alt=""></a></span>
-                        <span style="text-align: center;"><a href="" target="blank"><img src="../../public/images/linkedin.png" alt=""></a></span>
-                        <span style="text-align: center;"><a href="" target="blank"><img src="../../public/images/whatsapp.png" alt=""></a></span>
+                     <div style="text-align: center;">
+                        <span class="apple-link" style="text-align: center;"><a href="https://twitter.com/nimdee2" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://learningplatform.sandbox.9ijakids.com//laravel/public/images/facebook-img.png" alt=""></a></span>
+
+                        <span class="apple-link" style="text-align: center;"><a href="http://9ijakids.com" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://learningplatform.sandbox.9ijakids.com//laravel/public/images/Instagram.png" alt=""></a></span>
+
+                        <span class="apple-link" style="text-align: center;"><a href="http://9ijakids.com" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://learningplatform.sandbox.9ijakids.com//laravel/public/images/Linkedin.png" alt=""></a></span>
+
+                        <span class="apple-link" style="text-align: center;"><a href="https://api.whatsapp.com/send/?phone=2349033854783&text&app_absent=0" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://learningplatform.sandbox.9ijakids.com//laravel/public/images/whatsapp.png" alt=""></a></span>
                       </div>
                     </td>
                   </tr>
@@ -198,18 +201,7 @@
           </table>
 
           <!-- START FOOTER -->
-          <div class="footer" style="clear: both; Margin-top: 10px; text-align: center; width: 100%;">
-            <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
-              <tr>
-                <td class="content-block" style="font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; font-size: 12px; color: #999999; text-align: center; display: flex;">
-                </td>
-              </tr>
-              <tr>
-                <td class="content-block powered-by" style="font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; font-size: 12px; color: #999999; text-align: center;">
-                </td>
-              </tr>
-            </table>
-          </div>
+          
           <!-- END FOOTER -->
 
           <!-- END CENTERED WHITE CONTAINER -->

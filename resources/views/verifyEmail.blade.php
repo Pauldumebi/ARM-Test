@@ -160,11 +160,15 @@
                       <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0;">Customer Services Executive</p>
                       <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0;">Website: <span><a href="{{ $details['websiteLink'] }}">CCLearning Platform</a></span></p>
                       <div class="w-100" style=" Margin-bottom: 10px;Margin-top: 10px;"></div>
+                      
                       <div style="text-align: center;">
-                        <span class="apple-link" style="text-align: center;"><a href="https://twitter.com/nimdee2" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://blog.nimdee.com/wp-content/uploads/2021/03/Twitter.png" alt=""></a></span>
-                        <span class="apple-link" style="text-align: center;"><a href="http://9ijakids.com" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://blog.nimdee.com/wp-content/uploads/2021/03/facebook.png" alt=""></a></span>
-                        <span class="apple-link" style="text-align: center;"><a href="http://9ijakids.com" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://blog.nimdee.com/wp-content/uploads/2021/03/Linkedin.png" alt=""></a></span>
-                        <span class="apple-link" style="text-align: center;"><a href="https://api.whatsapp.com/send/?phone=2349033854783&text&app_absent=0" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://blog.nimdee.com/wp-content/uploads/2021/03/Whatsapp.png" alt=""></a></span>
+                        <span class="apple-link" style="text-align: center;"><a href="https://twitter.com/nimdee2" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://learningplatform.sandbox.9ijakids.com//laravel/public/images/facebook-img.png" alt=""></a></span>
+
+                        <span class="apple-link" style="text-align: center;"><a href="http://9ijakids.com" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://learningplatform.sandbox.9ijakids.com//laravel/public/images/Instagram.png" alt=""></a></span>
+
+                        <span class="apple-link" style="text-align: center;"><a href="http://9ijakids.com" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://learningplatform.sandbox.9ijakids.com//laravel/public/images/Linkedin.png" alt=""></a></span>
+
+                        <span class="apple-link" style="text-align: center;"><a href="https://api.whatsapp.com/send/?phone=2349033854783&text&app_absent=0" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://learningplatform.sandbox.9ijakids.com//laravel/public/images/whatsapp.png" alt=""></a></span>
                       </div>
                     </td>
                   </tr>

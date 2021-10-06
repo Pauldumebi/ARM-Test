@@ -49,6 +49,7 @@ Route::prefix("v1")->group(function () {
     Route::post("/modules-topics", [CoursesController::class, "getCourseModuleTopics"]);
     Route::post("/course-seats", [CoursesController::class, "getCourseSeats"]);
     Route::post("/assignment-courses", [CoursesController::class, "getCoursesAssignment"]);
+    Route::get("/courseTrackerLog/{token}", [CoursesController::class, "courseTrackerLog"]);
 });
 
 // Group Controller Endpoints
