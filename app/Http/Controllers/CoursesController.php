@@ -69,7 +69,7 @@ class CoursesController extends Controller
                     if ($seats["Assigned"] < $seats["Total"]) {
                         DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID]);
 
-                        $this -> assignedACourse($user[0]->userFirstName, $user[0]->userEmail);
+                        $this->assignedACourse($user[0]->userFirstName, $user[0]->userEmail);
 
                         return response()->json(["success" => true, "message" => "Enrollment Successful"]);
                     }
@@ -201,18 +201,18 @@ class CoursesController extends Controller
         }
     }
 
-    public function courseTrackerLog($token) 
-    { 
+    public function courseTrackerLog($token)
+    {
         $user = DB::table("users")->where("token", "=", $token)->get();
-        if(count($user)===1) {
-            $query = DB::table("courseTracker")->join("users", "courseTracker.userID", "users.userID")->join("topic", "courseTracker.topicID", "=", "topic.topicID")->join("module", "topic.moduleID", "=", "module.moduleID")->where("users.token", "=", $token)->get();
+        if (count($user) === 1) {
+            $query = DB::table("courseTrackerLog")->join("users", "courseTrackerLog.userID", "users.userID")->join("topic", "courseTrackerLog.topicID", "=", "topic.topicID")->join("module", "topic.moduleID", "=", "module.moduleID")->where("users.token", "=", $token)->get();
             if (count($query) > 0) {
                 return response()->json(["success" => true, "courseTrackerLog" => $query]);
             } else {
-                return response()->json(["success" => true, "courseTrackerLog" => [], "message" => "No data found"], 204);
+                return response()->json(["success" => true, "courseTrackerLog" => [], "message" => "No data found"]);
             }
         } else {
-            return response()->json(["success"=> false, "message"=>"User not found"]);
+            return response()->json(["success" => false, "message" => "User not found"]);
         }
     }
 }
