@@ -80,12 +80,12 @@ Route::prefix("v1")->group(function () {
 });
 
 // Site Admin Page Controller Endpoints
-Route::prefix("v1")->group(function () {
-    Route::get("/registered-companies", [SiteAdminController::class, "getCompanies"]);
-    Route::get("/registered-users", [SiteAdminController::class, "getUsers"]);
+Route::prefix("v1")->middleware("isSiteAdmin")->group(function () {
+    Route::post("/registered-companies", [SiteAdminController::class, "getCompanies"]);
+    Route::post("/registered-users", [SiteAdminController::class, "getUsers"]);
     Route::post("/admin-course", [SiteAdminController::class, "createCourse"]);
     Route::post("/admin-module", [SiteAdminController::class, "addModule"]);
     Route::post("/admin-topic", [SiteAdminController::class, "addTopic"]);
-    Route::post("/test-upload", [SiteAdminController::class, "testFileUpload"]);
-    Route::post("/test-folderupload", [SiteAdminController::class, "testFolderUpload"]);
+    Route::post("/test-upload", [SiteAdminController::class, "testFileUpload"])->withoutMiddleware("isSiteAdmin");
+    Route::post("/test-folderupload", [SiteAdminController::class, "testFolderUpload"])->withoutMiddleware("isSiteAdmin");
 });
