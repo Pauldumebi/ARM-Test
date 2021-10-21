@@ -55,6 +55,7 @@ Route::prefix("v1")->group(function () {
 // Group Controller Endpoints
 Route::prefix("v1")->group(function () {
     Route::post("/group", [GroupController::class, "createGroup"]);
+    Route::put("/group", [GroupController::class, "editGroup"]);
     Route::delete("/group", [GroupController::class, "removeGroup"]);
     Route::get("/groups-company/{token}", [GroupController::class, "fetchCompanyGroup"]);
     Route::post("/group-course", [GroupController::class, "assignCourse"]);

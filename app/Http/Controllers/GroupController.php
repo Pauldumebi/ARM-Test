@@ -86,6 +86,28 @@ class GroupController extends Controller
         }
     }
 
+    public function editGroup(Request $req)
+    {
+        $token = $req->token;
+        $groupid = $req->groupid;
+        $groupname = $req->newgroupname;
+
+
+        $checkToken = $this->isAdmin($token);
+        // Checks if the token belongs to an company Admin User
+        if ($checkToken["isAdmin"]) {
+            // Checks if the GroupID exists for that company
+            if (DB::table("group")->where("groupID", "=", $groupid)->where("companyID", "=", $checkToken["companyID"])->exists()) {
+                DB::table("group")->where("groupID", "=", $groupid)->update(["groupName" => $groupname]);
+                return response()->json(["success" => true, "message" => "Group Updated Successfully"]);
+            } else {
+                return response()->json(["success" => false, "message" => "Group does not exists"], 400);
+            }
+        } else {
+            return response()->json(["success" => false, "message" => "Users Not Admin"], 401);
+        }
+    }
+
 
     public function removeGroup(Request $req)
     {
