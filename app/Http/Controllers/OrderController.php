@@ -40,21 +40,19 @@ class OrderController extends Controller
         $courses = $req->courses;
         $isAdmin = $this->isAdmin($token);
         $alreadyOrdered = [];
-        if ($isAdmin["isAdmin"]) {
-            foreach ($courses as $course) {
-                $orderNumber = $this->OrderID();
-                // DB::table("orders")->updateOrInsert(["companyID" => $isAdmin["companyID"], "courseID" => $course["id"]], ["orderNumber" => $orderNumber,  "status" => "pending", "seats" => $course["seats"]]);
-                if (DB::table("orders")->where("companyID", "=", $isAdmin["companyID"])->where("courseID", "=", $course["id"])->doesntExist()) {
-                    DB::table("orders")->insert(["companyID" => $isAdmin["companyID"], "courseID" => $course["id"], "orderNumber" => $orderNumber,  "status" => "pending", "seats" => $course["seats"]]);
-                } else {
-                    array_push($alreadyOrdered, "Course with ID " . $course["id"] . " Already Ordered");
-                }
+
+        foreach ($courses as $course) {
+            $orderNumber = $this->OrderID();
+            // DB::table("orders")->updateOrInsert(["companyID" => $isAdmin["companyID"], "courseID" => $course["id"]], ["orderNumber" => $orderNumber,  "status" => "pending", "seats" => $course["seats"]]);
+            if (DB::table("orders")->where("companyID", "=", $isAdmin["companyID"])->where("courseID", "=", $course["id"])->doesntExist()) {
+                DB::table("orders")->insert(["companyID" => $isAdmin["companyID"], "courseID" => $course["id"], "orderNumber" => $orderNumber,  "status" => "pending", "seats" => $course["seats"]]);
+            } else {
+                array_push($alreadyOrdered, "Course with ID " . $course["id"] . " Already Ordered");
             }
-            return response()->json(["success" => true, "message" => "Order has been created.", "orderExists" => $alreadyOrdered]);
-        } else {
-            return response()->json(["success" => false, "message" => "Users Not Admin"], 401);
         }
+        return response()->json(["success" => true, "message" => "Order has been created.", "orderExists" => $alreadyOrdered]);
     }
+
     public function getOrders($token)
     {
         $isAdmin = $this->isAdmin($token);

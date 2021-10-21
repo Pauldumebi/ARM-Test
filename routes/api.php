@@ -35,7 +35,7 @@ Route::prefix("v1")->group(function () {
 });
 
 // User Controller Endpoints
-Route::prefix("v1")->group(function () {
+Route::prefix("v1")->middleware("isAdmin")->group(function () {
     Route::post("/user", [UserController::class, "createCompanyUser"]);
     Route::post("/companyusers", [UserController::class, "getCompanyUsers"]);
 });
@@ -76,7 +76,7 @@ Route::prefix("v1")->group(function () {
 // Order Page Controller Endpoints
 Route::prefix("v1")->group(function () {
     Route::get("/orders/{token}", [OrderController::class, "getOrders"]);
-    Route::post("/orders", [OrderController::class, "checkoutOrders"]);
+    Route::post("/orders", [OrderController::class, "checkoutOrders"])->middleware("isAdmin");
 });
 
 // Site Admin Page Controller Endpoints
