@@ -44,8 +44,10 @@ Route::prefix("v1")->middleware("isAdmin")->group(function () {
 Route::prefix("v1")->group(function () {
     Route::get("/course", [CoursesController::class, "getCourses"]);
     Route::post("/course-enrollment", [CoursesController::class, "enrolToCourse"]);
+    Route::delete("/course-enrollment", [CoursesController::class, "unEnrolFromCourse"]);
     Route::post("/company-enrollment", [CoursesController::class, "enrolCompanyToCourse"]);
     Route::post("/enrolled-courses", [CoursesController::class, "getEnrolledCourses"]);
+    Route::post("/enrolled-course-users", [CoursesController::class, "getEnrolledCourseUsers"]);
     Route::post("/modules-topics", [CoursesController::class, "getCourseModuleTopics"]);
     Route::post("/course-seats", [CoursesController::class, "getCourseSeats"]);
     Route::post("/assignment-courses", [CoursesController::class, "getCoursesAssignment"]);
