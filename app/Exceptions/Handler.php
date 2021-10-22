@@ -83,7 +83,7 @@ class Handler extends ExceptionHandler
             if ($request->is('api/*')) {
                 return response()->json([
                     "success" => false,
-                    "message" => $e->getMessage()
+                    "message" => "Email could not be sent. " . $e->getMessage()
                 ], 500);
             }
         });

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Symfony\Component\HttpFoundation\Test\Constraint\ResponseFormatSame;
 
 class CoursesController extends Controller
 {
@@ -34,6 +35,29 @@ class CoursesController extends Controller
         return ["Total" => $totalSeats, "Assigned" => $assignedSeats];
     }
 
+    private function isAdmin($token)
+    {
+        // Checks if token has admin privileges and return companyID of Admin
+        if (DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->exists()) {
+            $user = DB::table("users")->where("token", "=", $token)->get();
+            return ["isAdmin" => true, "companyID" => $user[0]->companyID, "userID" => $user[0]->userID];
+        } else {
+            return ["isAdmin" => false];
+        }
+    }
+
+    private function userExists($token, $companyID)
+    {
+        // Checks if token has a corresponding user in the DB and return the userID and companyID
+        if (DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 2)->where("companyID", "=", $companyID)->exists()) {
+            $user = DB::table("users")->where("token", "=", $token)->get();
+            return ["userExists" => true, "companyID" => $user[0]->companyID, "userID" => $user[0]->userID, "userFirstName" => $user[0]->userFirstName, "userEmail" => $user[0]->userEmail];
+        } else {
+            return ["userExists" => false];
+        }
+    }
+
+
     public function getCourses()
     {
 
@@ -51,38 +75,45 @@ class CoursesController extends Controller
     public function enrolToCourse(Request $req)
     {
         $token = $req->token;
+        $usertoken = $req->usertoken;
         $courseID = $req->courseID;
 
+        $checkToken = $this->isAdmin($token);
+        // Checks if the token belongs to an company Admin User
+        if ($checkToken["isAdmin"]) {
+            $checkUser =  $this->userExists($usertoken, $checkToken["companyID"]);
+            // Checks if user exists for that company
+            if ($checkUser["userExists"]) {
 
-        $user = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 2)->get();
-        if (count($user) === 1) {
+                if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
+                    $userID = $checkUser["userID"];
 
-            if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
-                $userID = $user[0]->userID;
+                    if (DB::table("courseEnrolment")->where("userID", "=", $userID)->where("courseID", "=", $courseID)->doesntExist()) {
 
-                if (DB::table("courseEnrolment")->where("userID", "=", $userID)->where("courseID", "=", $courseID)->doesntExist()) {
+                        $companyID = $checkUser["companyID"];
 
-                    $companyID = $user[0]->companyID;
+                        $seats = $this->getSeats($companyID, $courseID);
 
-                    $seats = $this->getSeats($companyID, $courseID);
+                        if ($seats["Assigned"] < $seats["Total"]) {
+                            $this->assignedACourse($checkUser["userFirstName"], $checkUser["userEmail"]);
 
-                    if ($seats["Assigned"] < $seats["Total"]) {
-                        DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID]);
+                            DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID]);
 
-                        $this->assignedACourse($user[0]->userFirstName, $user[0]->userEmail);
+                            return response()->json(["success" => true, "message" => "Enrollment Successful"]);
+                        }
 
-                        return response()->json(["success" => true, "message" => "Enrollment Successful"]);
+                        return response()->json(["success" => false, "message" => "No more Course Seats!"], 400);
+                    } else {
+                        return response()->json(["success" => true, "message" => "Already Enrolled"]);
                     }
-
-                    return response()->json(["success" => false, "message" => "No more Course Seats!"], 400);
                 } else {
-                    return response()->json(["success" => true, "message" => "Already Enrolled"]);
+                    return response()->json(["success" => false, "message" => "Course does not exist"], 400);
                 }
             } else {
-                return response()->json(["success" => false, "message" => "Course does not exist"], 400);
+                return response()->json(["success" => false, "message" => "Users does not exist"], 400);
             }
         } else {
-            return response()->json(["success" => false, "message" => "Users does not exist"], 400);
+            return response()->json(["success" => false, "message" => "User Not Admin"], 401);
         }
     }
 
@@ -98,6 +129,7 @@ class CoursesController extends Controller
         $user = DB::table("users")->where("token", "=", $usertoken)->where("userRoleID", "=", 2)->where("companyID", "=", $adminUser[0]->companyID)->get();
         // Check if "token" belongs to an Admin user
         if (count($adminUser) === 1) {
+
             // Check if user have same company with Admin
             if (count($user) === 1) {
 
