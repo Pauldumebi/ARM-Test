@@ -294,4 +294,30 @@ class CoursesController extends Controller
             return response()->json(["success" => false, "message" => "User not found"]);
         }
     }
+
+    public function getEnrolledCourseUsers(Request $req)
+    {
+        $token = $req->token;
+        $courseID = $req->courseID;
+
+        $checkToken = $this->isAdmin($token);
+        // Checks if the token belongs to an company Admin User
+        if ($checkToken["isAdmin"]) {
+
+            if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
+
+                $users = DB::table("courseEnrolment")->join("users", "users.userID", "=", "courseEnrolment.userID")->where("courseEnrolment.courseID", "=", $courseID)->where("users.companyID", "=", $checkToken["companyID"])->select(["users.userFirstName", "users.userLastName", "users.token", "users.userEmail"])->get();
+
+                if (count($users) > 0) {
+                    return response()->json(["success" => true, "users" => $users]);
+                } else {
+                    return response()->json(["success" => true, "message" => "No users found", "users" => []]);
+                }
+            } else {
+                return response()->json(["success" => false, "message" => "Course does not exists"], 401);
+            }
+        } else {
+            return response()->json(["success" => false, "message" => "User not Admin"], 401);
+        }
+    }
 }
