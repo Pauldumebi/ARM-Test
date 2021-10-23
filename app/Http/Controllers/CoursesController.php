@@ -265,7 +265,7 @@ class CoursesController extends Controller
             if (count($courses) > 0) {
                 $i = 0;
                 foreach ($courses as $course) {
-                    if (DB::table("courseEnrolment")->join("course", "courseEnrolment.courseID", "=", "course.courseID")->join("users", "courseEnrolment.userID", "=", "users.userID")->select(["course.courseID", "course.courseName", "course.courseDescription", "course.duration", "course.courseType", "courseEnrolment.enrolDate"])->where("users.token", "=", $token)->where("course.courseID", "=", $course->courseID)->exists()) {
+                    if (DB::table("courseEnrolment")->join("course", "courseEnrolment.courseID", "=", "course.courseID")->join("users", "courseEnrolment.userID", "=", "users.userID")->select(["course.courseID", "course.courseName", "course.courseDescription", "course.duration", "course.courseType", "courseEnrolment.created_at"])->where("users.token", "=", $token)->where("course.courseID", "=", $course->courseID)->exists()) {
                         $course->enrolled = true;
                     } else {
                         $course->enrolled = false;

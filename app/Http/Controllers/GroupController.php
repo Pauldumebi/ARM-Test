@@ -147,7 +147,7 @@ class GroupController extends Controller
         $checkToken = $this->isAdmin($token);
         // Checks if the token belongs to an company Admin User
         if ($checkToken["isAdmin"]) {
-            $groups = DB::table("group")->where("companyID", "=", $checkToken["companyID"])->select(["groupID", "groupName", "create_date"])->get();
+            $groups = DB::table("group")->where("companyID", "=", $checkToken["companyID"])->select(["groupID", "groupName", "created_at"])->get();
             // Checks if the a company has ay groups at all
             if (count($groups) > 0) {
                 return response()->json(["success" => true, "groups" => $groups]);
@@ -375,7 +375,7 @@ class GroupController extends Controller
         if ($checkToken["isAdmin"]) {
             // Check if group exist for that particular company
             if (DB::table("group")->where("groupID", "=", $groupid)->where("companyID", "=", $checkToken["companyID"])->exists()) {
-                $course = DB::table("groupEnrolment")->join("course", "course.courseID", "=", "groupEnrolment.courseID")->where("groupID", "=", $groupid)->select(["course.courseID", "course.courseName", "groupEnrolment.enrol_date"])->get();
+                $course = DB::table("groupEnrolment")->join("course", "course.courseID", "=", "groupEnrolment.courseID")->where("groupID", "=", $groupid)->select(["course.courseID", "course.courseName", "groupEnrolment.created_at"])->get();
                 // Check if there are courses for the group
                 if (count($course) > 0) {
                     return response()->json(["success" => true, "courses" => $course]);
