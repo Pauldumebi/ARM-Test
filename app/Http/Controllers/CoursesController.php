@@ -61,10 +61,12 @@ class CoursesController extends Controller
     public function getCourses()
     {
 
-        $courses = DB::table("course")->get();
+        // the IF statement is used to return true for instances where the published column is 1 and false if its 0
+        $courses = DB::table("course")->selectRaw("courseID, courseName, courseDescription, image, courseCategory, created_at, published
+    ")->get();
 
         if (count($courses) > 0) {
-            $bundles = DB::table("courseBundle")->join("bundle", "courseBundle.bundleID", "=", "bundle.bundleID")->select(["courseBundle.bundleID", "bundle.bundleTitle", "bundle.bundleDescription", "bundle.price", "bundle.createDate"])->selectRaw("COUNT(courseBundle.courseID) AS CourseCount")->groupBy("courseBundle.bundleID")->get();
+            $bundles = DB::table("courseBundle")->join("bundle", "courseBundle.bundleID", "=", "bundle.bundleID")->select(["courseBundle.bundleID", "bundle.bundleTitle", "bundle.bundleDescription", "bundle.price", "bundle.created_at"])->selectRaw("COUNT(courseBundle.courseID) AS CourseCount")->groupBy("courseBundle.bundleID")->get();
 
             return response()->json(["success" => true, "courses" => $courses, "bundles" => $bundles]);
         } else {
@@ -200,7 +202,7 @@ class CoursesController extends Controller
         $token = $req->token;
 
 
-        $query = DB::table("courseEnrolment")->join("course", "courseEnrolment.courseID", "=", "course.courseID")->join("users", "courseEnrolment.userID", "=", "users.userID")->select(["course.courseID", "course.courseName", "course.courseDescription", "course.duration", "course.courseType", "courseEnrolment.enrolDate"])->where("users.token", "=", $token)->get();
+        $query = DB::table("courseEnrolment")->join("course", "courseEnrolment.courseID", "=", "course.courseID")->join("users", "courseEnrolment.userID", "=", "users.userID")->select(["course.courseID", "course.courseName", "course.courseDescription", "course.duration", "course.courseType", "courseEnrolment.created_at"])->where("users.token", "=", $token)->get();
 
         if (count($query) > 0) {
             return response()->json(["success" => true, "enrolledCourses" => $query]);

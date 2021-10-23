@@ -24,11 +24,11 @@ class SiteAdminController extends Controller
     public function getCompanies()
     {
 
-        $companies =  DB::table("company")->join("users", "users.companyID", "=", "company.companyID")->where("users.userRoleID", "=", 1)->select(["company.companyID", "company.companyName as company_name", "company.companyAddress1 as company_address", "company.emailSuffix as company_email_suffix",  "company.companyAdminID", "users.userFirstName as admin_firstname", "users.userLastName as admin_lastname", "users.userEmail as admin_email", "company.companyCreateDate as create_at"])->get();
+        $companies =  DB::table("company")->join("users", "users.companyID", "=", "company.companyID")->where("users.userRoleID", "=", 1)->select(["company.companyID", "company.companyName as company_name", "company.companyAddress1 as company_address", "company.emailSuffix as company_email_suffix",  "company.companyAdminID", "users.userFirstName as admin_firstname", "users.userLastName as admin_lastname", "users.userEmail as admin_email", "company.created_at"])->get();
 
         foreach ($companies as $company) {
             $companyUsersNo = DB::table("users")->where("companyID", "=", $company->companyID)->count();
-            $companyCourses = DB::table("courseEnrolment")->join("course", "course.courseID", "=", "courseEnrolment.courseID")->where("userID", "=", $company->companyAdminID)->select(["course.courseName", "courseEnrolment.enrolDate as purchased_at"])->get();
+            $companyCourses = DB::table("courseEnrolment")->join("course", "course.courseID", "=", "courseEnrolment.courseID")->where("userID", "=", $company->companyAdminID)->select(["course.courseName", "courseEnrolment.created_at as purchased_at"])->get();
             $company->users_count = $companyUsersNo;
             $company->courses_list = $companyCourses;
         }
@@ -38,7 +38,7 @@ class SiteAdminController extends Controller
 
     public function getUsers()
     {
-        $users = DB::table("users")->join("company", "company.companyID", "=", "users.companyID")->join("role", "role.roleID", "=", "users.userRoleID")->select(["users.userFirstName", "users.userLastName", "users.userEmail", "company.companyName", "role.roleName", "users.createdDate"])->get();
+        $users = DB::table("users")->join("company", "company.companyID", "=", "users.companyID")->join("role", "role.roleID", "=", "users.userRoleID")->select(["users.userFirstName", "users.userLastName", "users.userEmail", "company.companyName", "role.roleName", "users.created_at"])->get();
         return response()->json(["success" => true, "registeredUsers" => $users]);
     }
 
@@ -48,6 +48,8 @@ class SiteAdminController extends Controller
         $courseDescription = $req->courseDescription;
         $courseCategory = $req->courseCategory;
         $coursePrice = $req->coursePrice;
+        // have to pass 1 (true) or 0 (false) from the FrontEnd
+        $published = $req->published;
 
         // Validate that a file was uploaded
         $validator = Validator::make($req->file(), [
@@ -68,10 +70,31 @@ class SiteAdminController extends Controller
             } else {
                 $imagePath = $this->getbaseUrl() . "/" . $courseImagePath;
 
-                DB::table("course")->insert(["courseName" => $courseName, "courseDescription" => $courseDescription, "price" => $coursePrice, "courseCategory" => $courseCategory, "image" => $imagePath]);
+                DB::table("course")->insert(["courseName" => $courseName, "courseDescription" => $courseDescription, "price" => $coursePrice, "courseCategory" => $courseCategory, "image" => $imagePath, "published" => $published]);
 
                 return response()->json(["success" => true, "message" => "Course Creation Successful"]);
             }
+        } else {
+            return response()->json(["success" => false, "message" => "Course Already Exists"], 400);
+        }
+    }
+
+    public function editCourse(Request $req)
+    {
+        $courseID = $req->courseID;
+        $courseName = $req->courseName;
+        $courseDescription = $req->courseDescription;
+        $courseCategory = $req->courseCategory;
+        $coursePrice = $req->coursePrice;
+        // have to pass 1 (true) or 0 (false) from the FrontEnd
+        $published = $req->published;
+
+        // Checks if courseName already exists
+        if (DB::table("course")->where("courseName", "=", $courseName)->doesntExist()) {
+
+            DB::table("course")->where("courseID", "=", $courseID)->update(["courseName" => $courseName, "courseDescription" => $courseDescription, "price" => $coursePrice, "courseCategory" => $courseCategory,  "published" => $published]);
+
+            return response()->json(["success" => true, "message" => "Course Updated Successful"]);
         } else {
             return response()->json(["success" => false, "message" => "Course Already Exists"], 400);
         }
