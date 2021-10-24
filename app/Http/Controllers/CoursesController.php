@@ -62,8 +62,7 @@ class CoursesController extends Controller
     {
 
         // the IF statement is used to return true for instances where the published column is 1 and false if its 0
-        $courses = DB::table("course")->selectRaw("courseID, courseName, courseDescription, image, courseCategory, created_at, published
-    ")->get();
+        $courses = DB::table("course")->selectRaw("courseID, courseName, courseDescription, image, courseCategory, created_at, published")->get();
 
         if (count($courses) > 0) {
             $bundles = DB::table("courseBundle")->join("bundle", "courseBundle.bundleID", "=", "bundle.bundleID")->select(["courseBundle.bundleID", "bundle.bundleTitle", "bundle.bundleDescription", "bundle.price", "bundle.created_at"])->selectRaw("COUNT(courseBundle.courseID) AS CourseCount")->groupBy("courseBundle.bundleID")->get();
@@ -220,15 +219,8 @@ class CoursesController extends Controller
         if (count($query) > 0) {
             $courseName = $query[0]->courseName;
             $modules = DB::table("module")->where("courseID", "=", $courseID)->get();
-            $i = -1;
-            foreach ($modules as $module) {
-                $i++;
-                $result[$i]["moduleName"] = $module->moduleName;
-                $topics = DB::table("topic")->where("moduleID", "=", $module->moduleID)->select("topicID", "topicName", "duration")->get();
-                $result[$i]["topics"] = $topics;
-            }
 
-            return response()->json(["success" => true, "courseName" => $courseName, "modulesTopics" => $result]);
+            return response()->json(["success" => true, "courseName" => $courseName, "modules" => $modules]);
         } else {
             return response()->json(["success" => false, "message" => "Course Does not Exist"], 400);
         }

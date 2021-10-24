@@ -89,7 +89,7 @@ Route::prefix("v1")->middleware("isSiteAdmin")->group(function () {
     Route::put("/admin-course", [SiteAdminController::class, "editCourse"]);
     Route::post("/admin-course", [SiteAdminController::class, "createCourse"]);
     Route::delete("/admin-course", [SiteAdminController::class, "deleteCourse"]);
-    Route::put("/admin-companny", [SiteAdminController::class, "editCompany"]);
+    Route::put("/admin-company", [SiteAdminController::class, "editCompany"]);
     Route::post("/admin-module", [SiteAdminController::class, "addModule"]);
     Route::post("/admin-topic", [SiteAdminController::class, "addTopic"]);
     Route::post("/test-upload", [SiteAdminController::class, "testFileUpload"])->withoutMiddleware("isSiteAdmin");
