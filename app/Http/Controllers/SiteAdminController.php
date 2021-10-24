@@ -181,6 +181,38 @@ class SiteAdminController extends Controller
         }
     }
 
+    public function editModule(Request $req)
+    {
+        $moduleName = $req->moduleName;
+        $moduleDescription = $req->moduleDescription;
+        $moduleID = $req->moduleID;
+
+
+        // Checks if module exists
+        if (DB::table("module")->where("moduleID", "=", $moduleID)->exists()) {
+
+            DB::table("module")->where("moduleID", "=", $moduleID)->update(["moduleName" => $moduleName, "moduleDescription" => $moduleDescription]);
+            return response()->json(["success" => true, "message" => "Module Updated Successfully"]);
+        } else {
+            return response()->json(["success" => false, "message" => "Module does not exist"], 400);
+        }
+    }
+
+    public function deleteModule(Request $req)
+    {
+        $moduleID = $req->moduleID;
+
+
+        // Checks if module exists
+        if (DB::table("module")->where("moduleID", "=", $moduleID)->exists()) {
+
+            DB::table("module")->where("moduleID", "=", $moduleID)->delete();
+            return response()->json(["success" => true, "message" => "Module Deleted Successfully"]);
+        } else {
+            return response()->json(["success" => false, "message" => "Module does not exist"], 400);
+        }
+    }
+
     public function addTopic(Request $req)
     {
         $topicName = $req->topicName;
