@@ -138,12 +138,41 @@ class SiteAdminController extends Controller
         $moduleDescription = $req->moduleDescription;
         $courseID = $req->courseID;
 
+        // Validate that a file was uploaded
+        $validator = Validator::make($req->file(), [
+            "folderzip" => "required"
+        ]);
+        if ($validator->fails()) {
+            return response()->json(["success" => false, "message" => "Module Folder not uploaded"], 400);
+        }
+        $moduleFolderName = $req->file("folderzip")->getClientOriginalName();
+        // Customise "learningPlatformFolder" in config > filesystems.php
+        $moduleFolderPath = $req->file("folderzip")->storeAs("ModuleFolders", $moduleFolderName, "learningPlatformFolder");
+
         // Checks if course exists
         if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
             // Checks if module already exists
             if (DB::table("module")->where("courseID", "=", $courseID)->where("moduleName", "=", $moduleName)->doesntExist()) {
-                $moduleID = DB::table("module")->insertGetId(["moduleName" => $moduleName, "moduleDescription" => $moduleDescription, "courseID" => $courseID]);
-                return response()->json(["success" => true, "message" => "Module Added", "moduleID" => $moduleID]);
+
+                // Check of folder was uploaded successfully
+                if (!$moduleFolderPath) {
+                    return response()->json(["success" => false, "message" => "Folder not Uploaded"], 400);
+                } else {
+                    $foldername = explode(".", $moduleFolderName)[0];
+                    $folderPath = $this->getbaseUrl() . "/" . "ModuleFolders" . "/" . $foldername;
+
+                    $unzipper = new Unzip();
+                    // Unzip the zip folder uploaded above
+                    $files = $unzipper->extract(storage_path("../../") . $moduleFolderPath, storage_path("../../ModuleFolders"));
+                    // Check if Zip File still exists then delete
+                    if (File::exists(storage_path("../../") . $moduleFolderPath)) {
+                        File::delete(storage_path("../../") . $moduleFolderPath);
+                    }
+
+                    $moduleID = DB::table("module")->insertGetId(["moduleName" => $moduleName, "moduleDescription" => $moduleDescription, "courseID" => $courseID, "folder" => $folderPath]);
+
+                    return response()->json(["success" => true, "message" => "Module Added", "moduleID" => $moduleID]);
+                }
             } else {
                 return response()->json(["success" => true, "message" => "Module already exist"], 400);
             }
