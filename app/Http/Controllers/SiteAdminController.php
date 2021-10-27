@@ -132,6 +132,87 @@ class SiteAdminController extends Controller
         }
     }
 
+    public function addBundle(Request $req)
+    {
+        $bundleName = $req->bundleName;
+        $bundleDescription = $req->bundleDescription;
+        $bundlePrice = $req->bundlePrice;
+        $courses = $req->courses;
+
+        // Checks if a bundle with that name already exists
+        if (DB::table("bundle")->where("bundleTitle", "=", $bundleName)->doesntExist()) {
+
+            // Checks if all courses in the array exists
+            foreach ($courses as $course) {
+                if (DB::table("course")->where("courseID", "=", $course["id"])->doesntExist()) {
+                    return response()->json(["success" => false, "message" => "Course with id " . $course["id"] . " does not exist"], 400);
+                }
+            }
+
+            // Insert Bundle details in the bundle table
+            $bundleID = DB::table("bundle")->insertGetId(["bundleTitle" => $bundleName, "bundleDescription" => $bundleDescription, "price" => $bundlePrice]);
+
+            // Loop through course list and insert into courseBundleTable
+            foreach ($courses as $course) {
+                DB::table("courseBundle")->insert(["bundleID" => $bundleID, "courseID" => $course["id"]]);
+            }
+
+            return response()->json(["success" => true, "message" => "Bundle created successfully"]);
+        } else {
+            return response()->json(["success" => false, "message" => "Bundle name already exists"], 400);
+        }
+    }
+
+    public function editBundle(Request $req)
+    {
+        $bundleName = $req->bundleName;
+        $bundleDescription = $req->bundleDescription;
+        $bundlePrice = $req->bundlePrice;
+        $bundleID = $req->bundleID;
+        $courses = $req->courses;
+
+        // Checks if module exists
+        if (DB::table("bundle")->where("bundleID", "=", $bundleID)->exists()) {
+
+            // Checks if all courses in the array exists
+            foreach ($courses as $course) {
+                if (DB::table("course")->where("courseID", "=", $course["id"])->doesntExist()) {
+                    return response()->json(["success" => false, "message" => "Course with id " . $course["id"] . " does not exist"], 400);
+                }
+            }
+
+            // Updated bundle table
+            DB::table("bundle")->where("bundleID", "=", $bundleID)->update(["bundleTitle" => $bundleName, "bundleDescription" => $bundleDescription, "price" => $bundlePrice]);
+
+            // Delete previous courses associated with bundle ID in courseBundle table
+            DB::table("courseBundle")->where("bundleID", "=", $bundleID)->delete();
+
+            // Loop through the new course list and insert into courseBundle Table
+            foreach ($courses as $course) {
+                DB::table("courseBundle")->insert(["bundleID" => $bundleID, "courseID" => $course["id"]]);
+            }
+
+            return response()->json(["success" => true, "message" => "Bundle Updated Successfully"]);
+        } else {
+            return response()->json(["success" => false, "message" => "Bundle does not exist"], 400);
+        }
+    }
+
+    public function deleteBundle(Request $req)
+    {
+        $bundleID = $req->bundleID;
+
+        // Checks if module exists
+        if (DB::table("bundle")->where("bundleID", "=", $bundleID)->exists()) {
+
+            DB::table("bundle")->where("bundleID", "=", $bundleID)->delete();
+
+            return response()->json(["success" => true, "message" => "Bundle Deleted Successfully"]);
+        } else {
+            return response()->json(["success" => false, "message" => "Bundle does not exist"], 400);
+        }
+    }
+
     public function addModule(Request $req)
     {
         $moduleName = $req->moduleName;
