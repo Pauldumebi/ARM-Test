@@ -198,6 +198,30 @@ class SiteAdminController extends Controller
         }
     }
 
+    public function getOrders(Request $req)
+    {
+
+        $orders = DB::table("orders")->join("company", "company.companyID", "=", "orders.companyID")->join("course", "course.courseID", "=", "orders.courseID")->select(["orderNumber", "orders.companyID", "company.companyName", "orders.courseID", "course.courseName", "seats", "status", "orders.created_at", "orders.updated_at"])->get();
+
+        return response()->json(["success" => true, "orders" => $orders]);
+    }
+
+    public function editOrderStatus(Request $req)
+    {
+
+        $orderNumber = $req->orderNumber;
+        $orderStatus = $req->orderStatus;
+
+        if (DB::table("orders")->where("orderNumber", "=", $orderNumber)->exists()) {
+
+            DB::table("orders")->where("orderNumber", "=", $orderNumber)->update(["status" => $orderStatus]);
+
+            return response()->json(["success" => true, "message" => "Order Status Updated Successfully"]);
+        } else {
+            return response()->json(["success" => false, "message" => "Order does not exist"]);
+        }
+    }
+
     public function deleteBundle(Request $req)
     {
         $bundleID = $req->bundleID;
