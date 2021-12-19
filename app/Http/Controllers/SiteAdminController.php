@@ -15,10 +15,10 @@ class SiteAdminController extends Controller
     // Gets the base url by exploding the laravel "url" output
 
 
-    private function getbaseUrl()
+    private function getBaseUrl()
     {
-        $explodedurl = explode("/", url("/"));
-        return "https://" . $explodedurl[2];
+        $explodedUrl = explode("/", url("/"));
+        return "https://" . $explodedUrl[2];
     }
 
     public function getCompanies()
@@ -85,7 +85,7 @@ class SiteAdminController extends Controller
             if (!$courseImagePath) {
                 return response()->json(["success" => false, "message" => "File not Uploaded"], 400);
             } else {
-                $imagePath = $this->getbaseUrl() . "/" . $courseImagePath;
+                $imagePath = $this->getBaseUrl() . "/" . $courseImagePath;
 
                 DB::table("course")->insert(["courseName" => $courseName, "courseDescription" => $courseDescription, "price" => $coursePrice, "courseCategory" => $courseCategory, "image" => $imagePath, "published" => $published]);
 
@@ -251,7 +251,7 @@ class SiteAdminController extends Controller
             return response()->json(["success" => false, "message" => "Module Folder not uploaded"], 400);
         }
         $moduleFolderName = $req->file("folderzip")->getClientOriginalName();
-        // Customise "learningPlatformFolder" in config > filesystems.php
+        // Customize "learningPlatformFolder" in config > filesystem.php
         $moduleFolderPath = $req->file("folderzip")->storeAs("ModuleFolders", $moduleFolderName, "learningPlatformFolder");
 
         // Checks if course exists
@@ -264,7 +264,7 @@ class SiteAdminController extends Controller
                     return response()->json(["success" => false, "message" => "Folder not Uploaded"], 400);
                 } else {
                     $foldername = explode(".", $moduleFolderName)[0];
-                    $folderPath = $this->getbaseUrl() . "/" . "ModuleFolders" . "/" . $foldername;
+                    $folderPath = $this->getBaseUrl() . "/" . "ModuleFolders" . "/" . $foldername;
 
                     $unzipper = new Unzip();
                     // Unzip the zip folder uploaded above
@@ -335,7 +335,7 @@ class SiteAdminController extends Controller
         $topicFolderName = $req->file("folderzip")->getClientOriginalName();
         $topicFolderPath = $req->file("folderzip")->storeAs("TopicFolders", $topicFolderName, "learningPlatformFolder");
 
-        // Check if module ID exists for that paticular course
+        // Check if module ID exists for that particular course
         if (DB::table("module")->where("moduleID", "=", $moduleID)->where("courseID", "=", $courseID)->exists()) {
             // Checks if the topic has already been added
             if (DB::table("topic")->where("topicName", "=", $topicName)->where("moduleID", "=", $moduleID)->doesntExist()) {
@@ -344,7 +344,7 @@ class SiteAdminController extends Controller
                     return response()->json(["success" => false, "message" => "Folder not Uploaded"], 400);
                 } else {
                     $foldername = explode(".", $topicFolderName)[0];
-                    $folderPath = $this->getbaseUrl() . "/" . "TopicFolders" . "/" . $foldername;
+                    $folderPath = $this->getBaseUrl() . "/" . "TopicFolders" . "/" . $foldername;
 
                     $unzipper = new Unzip();
                     // Unzip the zip folder uploaded above
@@ -372,7 +372,7 @@ class SiteAdminController extends Controller
 
         // $path = $req->file("image")->store("images");
 
-        $path = $this->getbaseUrl() . "/" . $req->file("image")->storeAs("CourseCoverImages", $name, "learningPlatformFolder");;
+        $path = $this->getBaseUrl() . "/" . $req->file("image")->storeAs("CourseCoverImages", $name, "learningPlatformFolder");
 
         // $path = $req->file("image")->storeAs("../../../../CourseCoverImages", $name);
 
@@ -392,7 +392,7 @@ class SiteAdminController extends Controller
         $foldername = explode(".", $name)[0];
 
 
-        // $path = $this->getbaseUrl() . "/" . $req->file("folderzip")->storeAs("CourseCoverImages", $name, "learningPlatformFolder");;
+        // $path = $this->getBaseUrl() . "/" . $req->file("folderzip")->storeAs("CourseCoverImages", $name, "learningPlatformFolder");;
 
         $path = $req->file("folderzip")->storeAs("TopicFolders", $name, "learningPlatformFolder");
 
