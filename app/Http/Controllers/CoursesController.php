@@ -65,7 +65,7 @@ class CoursesController extends Controller
         $courses = DB::table("course")->selectRaw("courseID, courseName, courseDescription, image, courseCategory, created_at, published")->get();
 
         if (count($courses) > 0) {
-            $bundles = DB::table("courseBundle")->join("bundle", "courseBundle.bundleID", "=", "bundle.bundleID")->select(["courseBundle.bundleID", "bundle.bundleTitle", "bundle.bundleDescription", "bundle.price", "bundle.created_at"])->selectRaw("COUNT(courseBundle.courseID) AS CourseCount")->groupBy("courseBundle.bundleID")->get();
+            $bundles = DB::table("courseBundle")->join("bundle", "courseBundle.bundleID", "=", "bundle.bundleID")->select(["courseBundle.bundleID","courseBundle.courseID" ,"bundle.bundleTitle", "bundle.bundleDescription", "bundle.price", "bundle.created_at"])->selectRaw("COUNT(courseBundle.courseID) AS CourseCount")->groupBy("courseBundle.bundleID")->get();
 
             return response()->json(["success" => true, "courses" => $courses, "bundles" => $bundles]);
         } else {
@@ -80,7 +80,7 @@ class CoursesController extends Controller
         $courseID = $req->courseID;
 
         $checkToken = $this->isAdmin($token);
-        // Checks if the token belongs to an company Admin User
+        // Checks if the token belongs to a company Admin User
         if ($checkToken["isAdmin"]) {
             $checkUser =  $this->userExists($usertoken, $checkToken["companyID"]);
             // Checks if user exists for that company
