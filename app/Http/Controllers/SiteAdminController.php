@@ -15,10 +15,10 @@ class SiteAdminController extends Controller
     // Gets the base url by exploding the laravel "url" output
 
 
-    private function getbaseUrl()
+    private function getBaseUrl()
     {
-        $explodedurl = explode("/", url("/"));
-        return "https://" . $explodedurl[2];
+        $explodedUrl = explode("/", url("/"));
+        return "https://" . $explodedUrl[2];
     }
 
     public function getCompanies()
@@ -40,6 +40,8 @@ class SiteAdminController extends Controller
     {
         $companyID = $req->companyID;
         $companyName = $req->companyName;
+        $userFirstName = $req->firstName;
+        $userLastName = $req->lastName;
         $companyAddress = $req->companyAddress;
 
         // Checks if companyID exists
@@ -47,7 +49,19 @@ class SiteAdminController extends Controller
 
             DB::table("company")->where("companyID", "=", $companyID)->update(["companyName" => $companyName, "companyAddress1" => $companyAddress]);
 
+            DB::table("users")->where(['companyID' => $companyID, "userRoleID" => 1])->update([ "userFirstName" => $userFirstName, "userLastName" => $userLastName]);
+
             return response()->json(["success" => true, "message" => "Company Updated Successful"]);
+        } else {
+            return response()->json(["success" => false, "message" => "Company Does Not Exists"], 400);
+        }
+    }
+
+    public function deleteCompany (Request $req) {
+        $companyID = $req->companyID;
+         if (DB::table("company")->where("companyID", "=", $companyID)->exists()) {
+            DB::table("company")->where("companyID", "=", $companyID)->delete();
+            return response()->json(["success" => true, "message" => "Company Deleted Successfully"]);
         } else {
             return response()->json(["success" => false, "message" => "Company Does Not Exists"], 400);
         }
@@ -85,7 +99,7 @@ class SiteAdminController extends Controller
             if (!$courseImagePath) {
                 return response()->json(["success" => false, "message" => "File not Uploaded"], 400);
             } else {
-                $imagePath = $this->getbaseUrl() . "/" . $courseImagePath;
+                $imagePath = $this->getBaseUrl() . "/" . $courseImagePath;
 
                 DB::table("course")->insert(["courseName" => $courseName, "courseDescription" => $courseDescription, "price" => $coursePrice, "courseCategory" => $courseCategory, "image" => $imagePath, "published" => $published]);
 
@@ -109,10 +123,28 @@ class SiteAdminController extends Controller
         // Checks if courseID exists
         if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
 
+            if($req->file("courseImage")) {
+                $courseImageName = $req->file("courseImage")->getClientOriginalName();
+                $courseImagePath = $req->file("courseImage")->storeAs("CourseCoverImages", $courseImageName, "learningPlatformFolder");
+                DB::table("course")->where("courseID", "=", $courseID)->update(["published" => $courseImagePath]);
+            }
+
             DB::table("course")->where("courseID", "=", $courseID)->update(["courseName" => $courseName, "courseDescription" => $courseDescription, "price" => $coursePrice, "courseCategory" => $courseCategory,  "published" => $published]);
 
             return response()->json(["success" => true, "message" => "Course Updated Successful"]);
         } else {
+            return response()->json(["success" => false, "message" => "Course Does Not Exists"], 400);
+        }
+    }
+
+    public function publish (Request $req) {
+        $published = $req->published;
+        $courseID = $req->courseID;
+        if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
+            DB::table("course")->where(["courseID" => $courseID])->update(["published" => $published]);
+            return response()->json(["success" => true, "message" => "Course has been Successfully Published"]);
+        } 
+        else {
             return response()->json(["success" => false, "message" => "Course Does Not Exists"], 400);
         }
     }
@@ -251,7 +283,7 @@ class SiteAdminController extends Controller
             return response()->json(["success" => false, "message" => "Module Folder not uploaded"], 400);
         }
         $moduleFolderName = $req->file("folderzip")->getClientOriginalName();
-        // Customise "learningPlatformFolder" in config > filesystems.php
+        // Customize "learningPlatformFolder" in config > filesystem.php
         $moduleFolderPath = $req->file("folderzip")->storeAs("ModuleFolders", $moduleFolderName, "learningPlatformFolder");
 
         // Checks if course exists
@@ -264,7 +296,7 @@ class SiteAdminController extends Controller
                     return response()->json(["success" => false, "message" => "Folder not Uploaded"], 400);
                 } else {
                     $foldername = explode(".", $moduleFolderName)[0];
-                    $folderPath = $this->getbaseUrl() . "/" . "ModuleFolders" . "/" . $foldername;
+                    $folderPath = $this->getBaseUrl() . "/" . "ModuleFolders" . "/" . $foldername;
 
                     $unzipper = new Unzip();
                     // Unzip the zip folder uploaded above
@@ -335,7 +367,7 @@ class SiteAdminController extends Controller
         $topicFolderName = $req->file("folderzip")->getClientOriginalName();
         $topicFolderPath = $req->file("folderzip")->storeAs("TopicFolders", $topicFolderName, "learningPlatformFolder");
 
-        // Check if module ID exists for that paticular course
+        // Check if module ID exists for that particular course
         if (DB::table("module")->where("moduleID", "=", $moduleID)->where("courseID", "=", $courseID)->exists()) {
             // Checks if the topic has already been added
             if (DB::table("topic")->where("topicName", "=", $topicName)->where("moduleID", "=", $moduleID)->doesntExist()) {
@@ -344,7 +376,7 @@ class SiteAdminController extends Controller
                     return response()->json(["success" => false, "message" => "Folder not Uploaded"], 400);
                 } else {
                     $foldername = explode(".", $topicFolderName)[0];
-                    $folderPath = $this->getbaseUrl() . "/" . "TopicFolders" . "/" . $foldername;
+                    $folderPath = $this->getBaseUrl() . "/" . "TopicFolders" . "/" . $foldername;
 
                     $unzipper = new Unzip();
                     // Unzip the zip folder uploaded above
@@ -372,7 +404,7 @@ class SiteAdminController extends Controller
 
         // $path = $req->file("image")->store("images");
 
-        $path = $this->getbaseUrl() . "/" . $req->file("image")->storeAs("CourseCoverImages", $name, "learningPlatformFolder");;
+        $path = $this->getBaseUrl() . "/" . $req->file("image")->storeAs("CourseCoverImages", $name, "learningPlatformFolder");
 
         // $path = $req->file("image")->storeAs("../../../../CourseCoverImages", $name);
 
@@ -392,7 +424,7 @@ class SiteAdminController extends Controller
         $foldername = explode(".", $name)[0];
 
 
-        // $path = $this->getbaseUrl() . "/" . $req->file("folderzip")->storeAs("CourseCoverImages", $name, "learningPlatformFolder");;
+        // $path = $this->getBaseUrl() . "/" . $req->file("folderzip")->storeAs("CourseCoverImages", $name, "learningPlatformFolder");;
 
         $path = $req->file("folderzip")->storeAs("TopicFolders", $name, "learningPlatformFolder");
 
