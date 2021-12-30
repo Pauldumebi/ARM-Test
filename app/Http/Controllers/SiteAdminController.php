@@ -40,6 +40,8 @@ class SiteAdminController extends Controller
     {
         $companyID = $req->companyID;
         $companyName = $req->companyName;
+        $userFirstName = $req->firstName;
+        $userLastName = $req->lastName;
         $companyAddress = $req->companyAddress;
 
         // Checks if companyID exists
@@ -47,7 +49,19 @@ class SiteAdminController extends Controller
 
             DB::table("company")->where("companyID", "=", $companyID)->update(["companyName" => $companyName, "companyAddress1" => $companyAddress]);
 
+            DB::table("users")->where(['companyID' => $companyID, "userRoleID" => 1])->update([ "userFirstName" => $userFirstName, "userLastName" => $userLastName]);
+
             return response()->json(["success" => true, "message" => "Company Updated Successful"]);
+        } else {
+            return response()->json(["success" => false, "message" => "Company Does Not Exists"], 400);
+        }
+    }
+
+    public function deleteCompany (Request $req) {
+        $companyID = $req->companyID;
+         if (DB::table("company")->where("companyID", "=", $companyID)->exists()) {
+            DB::table("company")->where("companyID", "=", $companyID)->delete();
+            return response()->json(["success" => true, "message" => "Company Deleted Successfully"]);
         } else {
             return response()->json(["success" => false, "message" => "Company Does Not Exists"], 400);
         }
@@ -109,10 +123,28 @@ class SiteAdminController extends Controller
         // Checks if courseID exists
         if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
 
+            if($req->file("courseImage")) {
+                $courseImageName = $req->file("courseImage")->getClientOriginalName();
+                $courseImagePath = $req->file("courseImage")->storeAs("CourseCoverImages", $courseImageName, "learningPlatformFolder");
+                DB::table("course")->where("courseID", "=", $courseID)->update(["published" => $courseImagePath]);
+            }
+
             DB::table("course")->where("courseID", "=", $courseID)->update(["courseName" => $courseName, "courseDescription" => $courseDescription, "price" => $coursePrice, "courseCategory" => $courseCategory,  "published" => $published]);
 
             return response()->json(["success" => true, "message" => "Course Updated Successful"]);
         } else {
+            return response()->json(["success" => false, "message" => "Course Does Not Exists"], 400);
+        }
+    }
+
+    public function publish (Request $req) {
+        $published = $req->published;
+        $courseID = $req->courseID;
+        if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
+            DB::table("course")->where(["courseID" => $courseID])->update(["published" => $published]);
+            return response()->json(["success" => true, "message" => "Course has been Successfully Published"]);
+        } 
+        else {
             return response()->json(["success" => false, "message" => "Course Does Not Exists"], 400);
         }
     }
