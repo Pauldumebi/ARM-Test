@@ -116,9 +116,10 @@ class SiteAdminController extends Controller
         $courseName = $req->courseName;
         $courseDescription = $req->courseDescription;
         $courseCategory = $req->courseCategory;
-        $coursePrice = $req->coursePrice;
+        $price = $req->price;
         // have to pass 1 (true) or 0 (false) from the FrontEnd
         $published = $req->published;
+        $image= $req->image;
 
         // Checks if courseID exists
         if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
@@ -129,7 +130,7 @@ class SiteAdminController extends Controller
                 DB::table("course")->where("courseID", "=", $courseID)->update(["published" => $courseImagePath]);
             }
 
-            DB::table("course")->where("courseID", "=", $courseID)->update(["courseName" => $courseName, "courseDescription" => $courseDescription, "price" => $coursePrice, "courseCategory" => $courseCategory,  "published" => $published]);
+            DB::table("course")->where("courseID", "=", $courseID)->update(["courseName" => $courseName, "courseDescription" => $courseDescription, "price" => $price, "courseCategory" => $courseCategory,  "published" => $published, "image" => $image]);
 
             return response()->json(["success" => true, "message" => "Course Updated Successful"]);
         } else {
@@ -323,12 +324,13 @@ class SiteAdminController extends Controller
         $moduleName = $req->moduleName;
         $moduleDescription = $req->moduleDescription;
         $moduleID = $req->moduleID;
+        $folder= $req->folder;
 
 
         // Checks if module exists
         if (DB::table("module")->where("moduleID", "=", $moduleID)->exists()) {
 
-            DB::table("module")->where("moduleID", "=", $moduleID)->update(["moduleName" => $moduleName, "moduleDescription" => $moduleDescription]);
+            DB::table("module")->where("moduleID", "=", $moduleID)->update(["moduleName" => $moduleName, "moduleDescription" => $moduleDescription, "folder" => $folder]);
             return response()->json(["success" => true, "message" => "Module Updated Successfully"]);
         } else {
             return response()->json(["success" => false, "message" => "Module does not exist"], 400);
