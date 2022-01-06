@@ -49,8 +49,11 @@ Route::prefix("v1")->group(function () {
     Route::post("/enrolled-courses", [CoursesController::class, "getEnrolledCourses"]);
     Route::post("/enrolled-course-users", [CoursesController::class, "getEnrolledCourseUsers"]);
     Route::post("/modules-topics", [CoursesController::class, "getCourseModuleTopics"]);
+    Route::post("/modules-topics-loggedIn", [CoursesController::class, "getCourseModuleTopicsForLoggedInUsers"]);
     Route::post("/course-seats", [CoursesController::class, "getCourseSeats"]);
     Route::post("/assignment-courses", [CoursesController::class, "getCoursesAssignment"]);
+    Route::post("/course-trackerLog", [CoursesController::class, "getCourseTrackerLog"]);
+    Route::post("/course-progress", [CoursesController::class, "insertCourseTracker"]);
     Route::get("/course-tracker/{token}", [CoursesController::class, "courseTrackerLog"]);
 });
 

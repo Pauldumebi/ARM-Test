@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
-    private function RandomCode($length = 15)
+    private function RandomCode($length = 50)
     {
         $code = '';
         $total = 0;
@@ -103,17 +103,24 @@ class AuthController extends Controller
         $query = DB::table("users")->join("role", "users.userRoleID", "=", "role.roleID")->where("users.userEmail", "=", $email)->select(["users.*", "role.roleName"])->get();
 
         if (count($query) === 1) {
-            // $realPassword = $users["password"];
             $user = $query[0];
             $pass_ok = password_verify($password, $user->userPassword);
             if ($pass_ok) {
-                $userData = ["token" => $user->token, "role" => $user->roleName,];
+                $token = $this->RandomCode();
+                DB::table("users")->where("userEmail", "=", $email)->update(["token" => $token]);
+                //Track Logins
+                DB::table("login_logs")->insert([ "email" => $email, "message" => "login successful", "status" => 200]);
+                $userData = ["token" => $token, "role" => $user->roleName,];
                 return response()->json(["success" => true, "data" => $userData], 200);
             } else {
-                return response()->json(["success" => false, "message" => "Invalid email or password"], 401);
+                $message = 'Invalid email or password';
+                DB::table("login_logs")->insert([ "email" => $email, "message" => $message, "status" => 401]);
+                return response()->json(["success" => false, "message" => $message], 401);
             }
         } else {
-            return response()->json(["success" => false, "message" => "User not registered"], 401);
+            $message = 'User not registered';
+                DB::table("login_logs")->insert([ "email" => $email, "message" => $message, "status" => 404]);
+            return response()->json(["success" => false, "message" => $message], 404);
         }
     }
 
