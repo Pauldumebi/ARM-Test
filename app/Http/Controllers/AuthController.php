@@ -106,11 +106,21 @@ class AuthController extends Controller
             $user = $query[0];
             $pass_ok = password_verify($password, $user->userPassword);
             if ($pass_ok) {
-                $token = $this->RandomCode();
-                DB::table("users")->where("userEmail", "=", $email)->update(["token" => $token]);
-                //Track Logins
-                DB::table("login_logs")->insert([ "email" => $email, "message" => "login successful", "status" => 200]);
-                $userData = ["token" => $token, "role" => $user->roleName,];
+                // if ($email === "nerd2@nimdeetest.com") {
+                    //Track Logins
+                    // DB::table("login_logs")->insert([ "email" => $email, "message" => "login successful", "status" => 200]);
+                    // $userData = ["token" => $user->token, "role" => $user->roleName,];
+                    
+                // } else {
+                    // $token = $this->RandomCode();
+                    // DB::table("users")->where("userEmail", "=", $email)->update(["token" => $token]);
+                    //Track Logins
+                    // DB::table("login_logs")->insert([ "email" => $email, "message" => "login successful", "status" => 200]);
+                    // $userData = ["token" => $token, "role" => $user->roleName,];
+                // }
+
+                $userData = ["token" => $user->token, "role" => $user->roleName,];
+                
                 return response()->json(["success" => true, "data" => $userData], 200);
             } else {
                 $message = 'Invalid email or password';

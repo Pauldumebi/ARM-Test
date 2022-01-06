@@ -253,18 +253,25 @@ class CoursesController extends Controller
         if (count($user)) {
             $userID = $user[0]->userID;
             $query = DB::table("course")->where("courseID", "=", $courseID)->get();
+            // var_dump($query);
             if (count($query) > 0) {
                 $courseName = $query[0]->courseName;
                 $modules = DB::table("module")->where("courseID", "=", $courseID)->get();
-                // var_dump($modules[0]);
+
+                if (!$modules) {
+                    return response()->json(["success" => true, "courseName" => $courseName, "modules" => "No modules for this course"]);
+                }
 
                 foreach ($modules as $module) {
                     $moduleID = $module->moduleID;
                     $modulesCompleted = DB::table("courseTrackerLog")->where("moduleID", "=", $moduleID)->where("status", "=", 'pass')->where("userID", "=", $userID)->get();
 
-                    $module->status=$modulesCompleted[0]->status;
+                    if (count($modulesCompleted) > 0) {
+                        $module->status=$modulesCompleted[0]->status;
+                    }
+                    else 
+                        $module->status="null";
                 }
-
                 return response()->json(["success" => true, "courseName" => $courseName, "modules" => $modules]);
             } else {
                 return response()->json(["success" => false, "message" => "Course Does not Exist"], 400);

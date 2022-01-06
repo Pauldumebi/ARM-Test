@@ -69,13 +69,16 @@ class GroupController extends Controller
     {
         $token = $req->token;
         $groupname = $req->groupname;
-
+        $groupRoleId = $req->groupRoleId;
 
         $checkToken = $this->isAdmin($token);
         // Checks if the token belongs to an company Admin User
         if ($checkToken["isAdmin"]) {
             // Checks if the GroupName does not already exists for that company
             if (DB::table("group")->where("groupName", "=", $groupname)->where("companyID", "=", $checkToken["companyID"])->doesntExist()) {
+                if ($groupRoleId) {
+                    DB::table("group")->insert(["groupName" => $groupname, "groupRoleId"=> $groupRoleId, "companyID" => $checkToken["companyID"]]);
+                }
                 DB::table("group")->insert(["groupName" => $groupname, "companyID" => $checkToken["companyID"]]);
                 return response()->json(["success" => true, "message" => "Group Created Successfully"]);
             } else {
@@ -142,12 +145,10 @@ class GroupController extends Controller
 
     public function fetchCompanyGroup($token)
     {
-
-
         $checkToken = $this->isAdmin($token);
         // Checks if the token belongs to an company Admin User
         if ($checkToken["isAdmin"]) {
-            $groups = DB::table("group")->where("companyID", "=", $checkToken["companyID"])->select(["groupID", "groupName", "created_at"])->get();
+            $groups = DB::table("group")->leftJoin("groupRole", "groupRole.groupRoleId", "=", "group.groupRoleId")->where("companyID", "=", $checkToken["companyID"])->select(["groupID", "groupName", "roleName", "group.created_at"])->get();
             // Checks if the a company has ay groups at all
             if (count($groups) > 0) {
                 return response()->json(["success" => true, "groups" => $groups]);
