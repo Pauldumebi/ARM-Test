@@ -390,4 +390,27 @@ class CoursesController extends Controller
             return response()->json(["success" => false, "message" => "User not Admin"], 401);
         }
     }
+
+    public function recommendCourses(){
+        $token = $req->token;
+        $usertoken = $req->usertoken;
+        $courseID = $req->courseID;
+
+        $checkToken = $this->isAdmin($token);
+        // Checks if the token belongs to a company Admin User
+        if ($checkToken["isAdmin"]) {
+            $checkUser =  $this->userExists($usertoken, $checkToken["companyID"]);
+        
+            $query=DB::table("groupRole")->where("groupRoleId", "=", $groupRoleId)->get();
+
+            if(count($query)> 0){
+                $course=DB::table('course')->where('courseID',"=",$courseID)->select('courseID','courseName','courseDescription','image')->limit(3)->get();
+                return response()->json([ "success" => true, "message"=> "Some Recommended courses you might like"]);
+
+            }
+            else{
+                return response()->json(["success"=>false, "message"=> "User not an admin and can't recommend courses "]);
+            }
+    }
+}
 }
