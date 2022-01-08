@@ -98,23 +98,20 @@ class CoursesController extends Controller
 
                             DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID]);
 
-                            $success=true;
-                            $message="Enrollment successful";
-                            return [$success,$message];
+                            return ["success" => true, "message" => "Enrollment successful", "status" => 200];
                         }
-
-                        return (["success" => false, "message" => "No more Course Seats!"], 400);
+                        return ["success" => false, "message" => "No more Course Seats!", "status" => 400];
                     } else {
-                        return (["success" => true, "message" => "Already Enrolled"]);
+                        return ["success" => true, "message" => "Already Enrolled"];
                     }
                 } else {
-                    return (["success" => false, "message" => "Course does not exist"], 400);
+                    return ["success" => false, "message" => "Course does not exist", "status" => 400];
                 }
             } else {
-                return (["success" => false, "message" => "Users to be enrolled does not exist"], 400);
+                return ["success" => false, "message" => "Users to be enrolled does not exist", "status" => 400];
             }
         } else {
-            return (["success" => false, "message" => "User Not Admin"], 401);
+            return ["success" => false, "message" => "User Not Admin", "status" => 401];
         }
     }
     public function enrolToCourse(Request $req)
@@ -123,48 +120,9 @@ class CoursesController extends Controller
         $usertoken = $req->usertoken;
         $courseID = $req->courseID;
 
-        $checkToken = $this->isAdmin($token);
-        // Checks if the token belongs to a company Admin User
-        if ($checkToken["isAdmin"]) {
-            $checkUser =  $this->userExists($usertoken, $checkToken["companyID"]);
-            // Checks if user exists for that company
-            if ($checkUser["userExists"]) {
-
-                // Check if course exists
-                if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
-                    $userID = $checkUser["userID"];
-
-                    // Checks if user is already enrolled
-                    if (DB::table("courseEnrolment")->where("userID", "=", $userID)->where("courseID", "=", $courseID)->doesntExist()) {
-
-                        $companyID = $checkUser["companyID"];
-
-                        $seats = $this->getSeats($companyID, $courseID);
-                        // Check if there are available seats
-                        if ($seats["Assigned"] < $seats["Total"]) {
-                            $this->assignedACourse($checkUser["userFirstName"], $checkUser["userEmail"]);
-
-                            DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID]);
-
-                            return response()->json(["success" => true, "message" => "Enrollment Successful"]);
-                        }
-
-                        return response()->json(["success" => false, "message" => "No more Course Seats!"], 400);
-                    } else {
-                        return response()->json(["success" => true, "message" => "Already Enrolled"]);
-                    }
-                } else {
-                    return response()->json(["success" => false, "message" => "Course does not exist"], 400);
-                }
-            } else {
-                return response()->json(["success" => false, "message" => "Users to be enrolled does not exist"], 400);
-            }
-        } else {
-            return response()->json(["success" => false, "message" => "User Not Admin"], 401);
-        }
+        $response = $this->enrollment($token, $usertoken, $courseID);
+        return response()->json(["success" => $response["success"], "message" => $response["message"]], $response["status"]);
     }
-
-
 
     public function unEnrolFromCourse(Request $req)
     {
@@ -272,7 +230,6 @@ class CoursesController extends Controller
             return response()->json(["success" => true, "enrolledCourses" => [], "message" => "No Enrolled Courses"]);
         }
     }
-
   
     public function getCourseModuleTopics(Request $req)
     {
