@@ -213,15 +213,24 @@ class CoursesController extends Controller
         ->groupBy("module.courseID")
         ->get();
 
+        $userID = $query[0]->userID;
+
         foreach ($query as $row) {
             $courseID = $row->courseID;
-            $userID = $row->userID;
+            // $userID = $row->userID;
             $query2 = DB::table("courseTrackerLog")
             ->join("module", "courseTrackerLog.moduleID", "=", "module.moduleID")
             ->join("course", "module.courseID", "=", "course.courseID")
             ->selectRaw("count(courseTrackerLog.status = 'pass') as modules_completed")->where("userID", "=", $userID)->where("course.courseID", "=", $courseID)->get();
 
+            $query3 = DB::table("courseAssessmentLog")->where("userID", "=", $userID)->where("courseID", "=", $courseID)->orderBy('score', 'DESC')->get();
+
             $row->modules_completed=$query2[0]->modules_completed;
+
+            if (count($query3) > 0)
+                $row->course_assessment_status=$query3[0]->status;
+            else 
+                $row->course_assessment_status=null;
         }
 
         if (count($query) > 0) {
@@ -246,7 +255,7 @@ class CoursesController extends Controller
         }
     }
 
-    public function getCourseModuleTopicsForLoggedInUsers(Request $req)
+    public function getCourseModulesForLoggedInUsers(Request $req)
     {
         $courseID = $req->courseID;
         $token = $req->token;
@@ -265,7 +274,7 @@ class CoursesController extends Controller
 
                 foreach ($modules as $module) {
                     $moduleID = $module->moduleID;
-                    $modulesCompleted = DB::table("courseTrackerLog")->where("moduleID", "=", $moduleID)->where("status", "=", 'pass')->where("userID", "=", $userID)->get();
+                    $modulesCompleted = DB::table("courseTrackerLog")->where("moduleID", "=", $moduleID)->where("userID", "=", $userID)->get();
 
                     if (count($modulesCompleted) > 0) {
                         $module->status=$modulesCompleted[0]->status;
@@ -273,9 +282,17 @@ class CoursesController extends Controller
                     else 
                         $module->status="null";
                 }
-                return response()->json(["success" => true, "courseName" => $courseName, "modules" => $modules]);
+                //Get Assessment Details
+                $query3 = DB::table("courseAssessmentLog")->where("userID", "=", $userID)->where("courseID", "=", $courseID)->orderBy('score', 'DESC')->get();
+
+                if (count($query3) > 0)
+                    $course_completion=$query3[0]->status;
+                else 
+                    $course_completion=null;
+
+                return response()->json(["success" => true, "courseName" => $courseName, "modules" => $modules, "courseAssessmentStatus" => $course_completion]);
             } else {
-                return response()->json(["success" => false, "message" => "Course Does not Exist"], 400);
+                return response()->json(["success" => false, "message" => "User not enrolled for this course"], 400);
             }
         }else 
         return response()->json(["success" => false, "message" => "User not logged in"], 401);
@@ -357,10 +374,15 @@ class CoursesController extends Controller
     public function insertCourseTracker (Request $req) {
         $token = $req->token;
         $moduleID = $req->moduleID;
+        $courseID = $req->courseID;
+        $score = $req->score;
         $user = DB::table("users")->where("token", "=", $token)->get();
         if (count($user) === 1) {
             $userID = $user[0]->userID;
             DB::table("courseTrackerLog")->insert(["userID" => $userID, "moduleID" => $moduleID]);
+            if ($score) {
+                DB::table("courseAssessmentLog")->insert(["userID" => $userID, "courseID" => $courseID, "score"=> $score]);
+            }
             return response()->json(["success" => true, "message" => "successfully inserted"]);
         } else
             return response()->json(["success" => false, "message" => "User not found"], 404);
@@ -372,7 +394,7 @@ class CoursesController extends Controller
         $courseID = $req->courseID;
 
         $checkToken = $this->isAdmin($token);
-        // Checks if the token belongs to an company Admin User
+        // Checks if the token belongs to a company Admin User
         if ($checkToken["isAdmin"]) {
 
             if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
@@ -392,26 +414,26 @@ class CoursesController extends Controller
         }
     }
 
-    public function recommendCourses(Request $req){
-        $token = $req->token;
-        $usertoken = $req->usertoken;
-        $courseID = $req->courseID;
+//     public function recommendCourses(Request $req){
+//         $token = $req->token;
+//         $usertoken = $req->usertoken;
+//         $courseID = $req->courseID;
 
-        $checkToken = $this->isAdmin($token);
-        // Checks if the token belongs to a company Admin User
-        if ($checkToken["isAdmin"]) {
-            $checkUser =  $this->userExists($usertoken, $checkToken["companyID"]);
+//         $checkToken = $this->isAdmin($token);
+//         // Checks if the token belongs to a company Admin User
+//         if ($checkToken["isAdmin"]) {
+//             $checkUser =  $this->userExists($usertoken, $checkToken["companyID"]);
         
-            $query=DB::table("groupRole")->where("groupRoleId", "=", $groupRoleId)->get();
+//             $query=DB::table("groupRole")->where("groupRoleId", "=", $groupRoleId)->get();
 
-            if(count($query)> 0){
-                $course=DB::table('course')->where('courseID',"=",$courseID)->select('courseID','courseName','courseDescription','image')->limit(3)->get();
-                return response()->json([ "success" => true, "message"=> "Some Recommended courses you might like"]);
+//             if(count($query)> 0){
+//                 $course=DB::table('course')->where('courseID',"=",$courseID)->select('courseID','courseName','courseDescription','image')->limit(3)->get();
+//                 return response()->json([ "success" => true, "message"=> "Some Recommended courses you might like"]);
 
-            }
-            else{
-                return response()->json(["success"=>false, "message"=> "User not an admin and can't recommend courses "]);
-            }
-    }
-}
+//             }
+//             else{
+//                 return response()->json(["success"=>false, "message"=> "User not an admin and can't recommend courses "]);
+//             }
+//     }
+// }
 }
