@@ -56,9 +56,18 @@ class UserController extends Controller
             if ($query[0]->emailSuffix === $email_suffix) {
                 $companyID = $query[0]->companyID;
 
-                DB::table("users")->insert(["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userPassword" => $hash, "userRoleID" => 2, "companyID" => $companyID, "token" => $newtoken]);
+               $userID= DB::table("users")->insertGetId(["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userPassword" => $hash, "userRoleID" => 2, "companyID" => $companyID, "token" => $newtoken]);
 
                 $this->sendUserCreationEmail($firstname, $email, "LearningPlatform");
+
+                $courseCategory= $req->courseCategory;
+                $courses= DB::table("course")->where("courseCategory","=", $courseCategory)->get();
+
+                foreach($courses as $course){
+                    $courseID=$course->courseID;
+                    DB::table("CourseEnrollment")->insert(["courseID"=>$courseID, "userID"=>$userID]);
+                }
+
 
                 return response()->json(["success" => true, "message" => "User Account Created"]);
             } else {
