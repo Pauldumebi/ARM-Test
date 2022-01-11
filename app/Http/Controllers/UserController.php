@@ -43,9 +43,12 @@ class UserController extends Controller
         $lastname = $req->lastName;
         $email = $req->email;
         $email_suffix = explode("@", $req->email)[1];
-        $tel = $req->tel;
+        $tel = formatIntlPhoneNo($req->tel);
+        $newtel= $this->formatIntlPhoneNo();
         $hash = password_hash("LearningPlatform", PASSWORD_DEFAULT);
         $newtoken = $this->RandomCode();
+        $courseCategory= $req->courseCategory;
+        
 
 
         if (DB::table("users")->where("userEmail", "=", $email)->doesntExist()) {
@@ -60,7 +63,7 @@ class UserController extends Controller
 
                 $this->sendUserCreationEmail($firstname, $email, "LearningPlatform");
 
-                $courseCategory= $req->courseCategory;
+                //Enroll user to default courses
                 $courses= DB::table("course")->where("courseCategory","=", $courseCategory)->get();
 
                 foreach($courses as $course){
