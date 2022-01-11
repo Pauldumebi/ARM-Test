@@ -62,7 +62,7 @@ class UserController extends Controller
     }
 
     public function editCompanyUser (Request $req) {
-        $token = $req->token;
+        $adminToken = $req->adminToken;
         $firstname = $req->firstName;
         $lastname = $req->lastName;
         $email = $req->email;
@@ -80,7 +80,7 @@ class UserController extends Controller
         
         if (count($queryUserTable) === 1) {
             
-            $query = DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->select(["company.emailSuffix", "company.companyID"])->where("users.token", "=", $token)->where("users.userRoleID", "=", 1)->get();
+            $query = DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->select(["company.emailSuffix", "company.companyID"])->where("users.token", "=", $adminToken)->where("users.userRoleID", "=", 1)->get();
             $userID = $queryUserTable[0]->userID;
 
             $adminCompanyID = $query[0]->companyID;
@@ -102,12 +102,13 @@ class UserController extends Controller
             return response()->json(["success" => false, "message" => "User does not exist"], 400);
         }
     }
+    
     public function deleteCompanyUser (Request $req) {
-        $token = $req->token;
+        $adminToken = $req->adminToken;
         $userID = $req->userID;
         $userToken = $req->userToken;
 
-        $table = DB::table("users")->where("token", "=", $token)->get();
+        $table = DB::table("users")->where("token", "=", $adminToken)->get();
         $adminCompanyID = $table[0]->companyID;
 
         $query = DB::table("users")->where("userID", "=", $userID)->orWhere("token", "=", $userToken)->get();

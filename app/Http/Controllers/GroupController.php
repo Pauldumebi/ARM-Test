@@ -243,59 +243,115 @@ class GroupController extends Controller
     public function addUser(Request $req)
     {
         $token = $req->token;
-        $usertoken = $req->usertoken;
+        $usertokenArray = $req->usertoken;
         $groupid = $req->groupid;
 
-        $checkToken = $this->isAdmin($token);
-        // Check if token is that of a Company Admin User
-        if ($checkToken["isAdmin"]) {
-            $userExists = $this->userExists($usertoken, $checkToken["companyID"]);
-            // Check if the user to be added to a group exists for the Admin Company
-            if ($userExists["userExists"]) {
-                // Check if the group id matches a group for the Admin's company
-                if (DB::table("group")->where("groupID", "=", $groupid)->where("companyID", "=", $checkToken["companyID"])->exists()) {
-                    // Check if the group has NOT been assigned to a course already
-                    if (DB::table("groupEnrolment")->where("groupID", "=", $groupid)->doesntExist()) {
-                        DB::table("userGroup")->updateOrInsert(["userID" => $userExists["userID"], "groupID" => $groupid]);
-                        return response()->json(["success" => true, "message" => "User Added Successfully"]);
-                    } else {
-                        $courses = DB::table("groupEnrolment")->join("course", "course.courseID", "=", "groupEnrolment.courseID")->where("groupID", "=", $groupid)->get();
-                        $i = -1;
-                        // Loop through all courses attached to a group and checks if they have available seats for the new user to be added
-                        foreach ($courses as $course) {
-                            $i++;
-                            $coursesNoSeat = [];
-                            // Get Available Seats
-                            $isSeatAvailable = $this->isSeatAvailable($checkToken["companyID"], $course->courseID);
-                            $result[$i] = $isSeatAvailable["isSeatAvailable"];
-                            // Checks if seat is not available for a course and adds it to the 'coursesNoSeat' array
-                            if (!$isSeatAvailable["isSeatAvailable"]) {
-                                array_push($coursesNoSeat, $course->courseName);
-                            }
-                        }
-                        // Checks if any of the courses attached to the Group does not have enough seats
-                        if (in_array(false, $result)) {
-                            return response()->json(["success" => false, "message" => "No more Seats in Course(s) assigned to Group", "coursesNoSeats" => $coursesNoSeat], 400);
-                        } else {
+        foreach ($usertokenArray as $usertoken) {
+
+
+
+            $checkToken = $this->isAdmin($token);
+            // Check if token is that of a Company Admin User
+            if ($checkToken["isAdmin"]) {
+                $userExists = $this->userExists($usertoken, $checkToken["companyID"]);
+                // Check if the user to be added to a group exists for the Admin Company
+                if ($userExists["userExists"]) {
+                    // Check if the group id matches a group for the Admin's company
+                    if (DB::table("group")->where("groupID", "=", $groupid)->where("companyID", "=", $checkToken["companyID"])->exists()) {
+                        // Check if the group has NOT been assigned to a course already
+                        if (DB::table("groupEnrolment")->where("groupID", "=", $groupid)->doesntExist()) {
                             DB::table("userGroup")->updateOrInsert(["userID" => $userExists["userID"], "groupID" => $groupid]);
-                            $user = DB::table("users")->where("userID", "=", $userExists["userID"])->get();
-                            // Loops through the courses attached to the Group and assigns them to the user
-                            foreach ($courses as $course) {
-                                DB::table("courseEnrolment")->updateOrInsert(["userID" => $userExists["userID"], "courseID" => $course->courseID], ["groupID" => $groupid]);
-                                $this->assignedACourse($user[0]->userFirstName, $user[0]->userEmail);
-                            }
                             return response()->json(["success" => true, "message" => "User Added Successfully"]);
+                        } else {
+                            $courses = DB::table("groupEnrolment")->join("course", "course.courseID", "=", "groupEnrolment.courseID")->where("groupID", "=", $groupid)->get();
+                            $i = -1;
+                            // Loop through all courses attached to a group and checks if they have available seats for the new user to be added
+                            foreach ($courses as $course) {
+                                $i++;
+                                $coursesNoSeat = [];
+                                // Get Available Seats
+                                $isSeatAvailable = $this->isSeatAvailable($checkToken["companyID"], $course->courseID);
+                                $result[$i] = $isSeatAvailable["isSeatAvailable"];
+                                // Checks if seat is not available for a course and adds it to the 'coursesNoSeat' array
+                                if (!$isSeatAvailable["isSeatAvailable"]) {
+                                    array_push($coursesNoSeat, $course->courseName);
+                                }
+                            }
+                            // Checks if any of the courses attached to the Group does not have enough seats
+                            if (in_array(false, $result)) {
+                                return response()->json(["success" => false, "message" => "No more Seats in Course(s) assigned to Group", "coursesNoSeats" => $coursesNoSeat], 400);
+                            } else {
+                                DB::table("userGroup")->updateOrInsert(["userID" => $userExists["userID"], "groupID" => $groupid]);
+                                $user = DB::table("users")->where("userID", "=", $userExists["userID"])->get();
+                                // Loops through the courses attached to the Group and assigns them to the user
+                                foreach ($courses as $course) {
+                                    DB::table("courseEnrolment")->updateOrInsert(["userID" => $userExists["userID"], "courseID" => $course->courseID], ["groupID" => $groupid]);
+                                    $this->assignedACourse($user[0]->userFirstName, $user[0]->userEmail);
+                                }
+                                return response()->json(["success" => true, "message" => "User Added Successfully"]);
+                            }
                         }
+                    } else {
+                        return response()->json(["success" => false, "message" => "Group does not exist"], 400);
                     }
                 } else {
-                    return response()->json(["success" => false, "message" => "Group does not exist"], 400);
+                    return response()->json(["success" => false, "message" => "Users does not exist"], 400);
                 }
             } else {
-                return response()->json(["success" => false, "message" => "Users does not exist"], 400);
+                return response()->json(["success" => false, "message" => "User not Admin"], 401);
             }
-        } else {
-            return response()->json(["success" => false, "message" => "User not Admin"], 401);
+
         }
+            // $checkToken = $this->isAdmin($token);
+            // Check if token is that of a Company Admin User
+            // if ($checkToken["isAdmin"]) {
+            //     $userExists = $this->userExists($usertoken, $checkToken["companyID"]);
+            //     // Check if the user to be added to a group exists for the Admin Company
+            //     if ($userExists["userExists"]) {
+            //         // Check if the group id matches a group for the Admin's company
+            //         if (DB::table("group")->where("groupID", "=", $groupid)->where("companyID", "=", $checkToken["companyID"])->exists()) {
+            //             // Check if the group has NOT been assigned to a course already
+            //             if (DB::table("groupEnrolment")->where("groupID", "=", $groupid)->doesntExist()) {
+            //                 DB::table("userGroup")->updateOrInsert(["userID" => $userExists["userID"], "groupID" => $groupid]);
+            //                 return response()->json(["success" => true, "message" => "User Added Successfully"]);
+            //             } else {
+            //                 $courses = DB::table("groupEnrolment")->join("course", "course.courseID", "=", "groupEnrolment.courseID")->where("groupID", "=", $groupid)->get();
+            //                 $i = -1;
+            //                 // Loop through all courses attached to a group and checks if they have available seats for the new user to be added
+            //                 foreach ($courses as $course) {
+            //                     $i++;
+            //                     $coursesNoSeat = [];
+            //                     // Get Available Seats
+            //                     $isSeatAvailable = $this->isSeatAvailable($checkToken["companyID"], $course->courseID);
+            //                     $result[$i] = $isSeatAvailable["isSeatAvailable"];
+            //                     // Checks if seat is not available for a course and adds it to the 'coursesNoSeat' array
+            //                     if (!$isSeatAvailable["isSeatAvailable"]) {
+            //                         array_push($coursesNoSeat, $course->courseName);
+            //                     }
+            //                 }
+            //                 // Checks if any of the courses attached to the Group does not have enough seats
+            //                 if (in_array(false, $result)) {
+            //                     return response()->json(["success" => false, "message" => "No more Seats in Course(s) assigned to Group", "coursesNoSeats" => $coursesNoSeat], 400);
+            //                 } else {
+            //                     DB::table("userGroup")->updateOrInsert(["userID" => $userExists["userID"], "groupID" => $groupid]);
+            //                     $user = DB::table("users")->where("userID", "=", $userExists["userID"])->get();
+            //                     // Loops through the courses attached to the Group and assigns them to the user
+            //                     foreach ($courses as $course) {
+            //                         DB::table("courseEnrolment")->updateOrInsert(["userID" => $userExists["userID"], "courseID" => $course->courseID], ["groupID" => $groupid]);
+            //                         $this->assignedACourse($user[0]->userFirstName, $user[0]->userEmail);
+            //                     }
+            //                     return response()->json(["success" => true, "message" => "User Added Successfully"]);
+            //                 }
+            //             }
+            //         } else {
+            //             return response()->json(["success" => false, "message" => "Group does not exist"], 400);
+            //         }
+            //     } else {
+            //         return response()->json(["success" => false, "message" => "Users does not exist"], 400);
+            //     }
+            // } else {
+            //     return response()->json(["success" => false, "message" => "User not Admin"], 401);
+            // }
     }
 
     public function removeUser(Request $req)
