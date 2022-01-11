@@ -31,7 +31,6 @@ class GroupController extends Controller
         Mail::to($email)->send(new \App\Mail\AssignedACourse($details));
     }
 
-
     private function userExists($token, $companyID)
     {
         // Checks if token has a corresponding user in the DB and return the userID and companyID
@@ -52,7 +51,6 @@ class GroupController extends Controller
         } else {
             $totalSeats = 0;
         }
-
 
         $query = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("companyID", "=", $companyID)->where("courseID", "=", $courseID)->get();
         $assignedSeats = count($query);
@@ -95,7 +93,6 @@ class GroupController extends Controller
         $groupid = $req->groupid;
         $groupname = $req->newgroupname;
 
-
         $checkToken = $this->isAdmin($token);
         // Checks if the token belongs to an company Admin User
         if ($checkToken["isAdmin"]) {
@@ -117,7 +114,6 @@ class GroupController extends Controller
 
         $token = $req->token;
         $groupid = $req->groupid;
-
 
         $checkToken = $this->isAdmin($token);
         // Checks if the token belongs to an company Admin User
@@ -162,7 +158,6 @@ class GroupController extends Controller
 
     public function assignCourse(Request $req)
     {
-
         $token = $req->token;
         $courseid = $req->courseID;
         $groupid = $req->groupid;
@@ -251,7 +246,6 @@ class GroupController extends Controller
         $usertoken = $req->usertoken;
         $groupid = $req->groupid;
 
-
         $checkToken = $this->isAdmin($token);
         // Check if token is that of a Company Admin User
         if ($checkToken["isAdmin"]) {
@@ -279,7 +273,7 @@ class GroupController extends Controller
                                 array_push($coursesNoSeat, $course->courseName);
                             }
                         }
-                        // Checks if any of the courses attached to the Group does not have enought seats
+                        // Checks if any of the courses attached to the Group does not have enough seats
                         if (in_array(false, $result)) {
                             return response()->json(["success" => false, "message" => "No more Seats in Course(s) assigned to Group", "coursesNoSeats" => $coursesNoSeat], 400);
                         } else {
@@ -300,7 +294,7 @@ class GroupController extends Controller
                 return response()->json(["success" => false, "message" => "Users does not exist"], 400);
             }
         } else {
-            return response()->json(["success" => false, "message" => "Users Not Admin"], 401);
+            return response()->json(["success" => false, "message" => "User not Admin"], 401);
         }
     }
 

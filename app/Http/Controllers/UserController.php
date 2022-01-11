@@ -9,21 +9,6 @@ use Illuminate\Support\Facades\Mail;
 class UserController extends Controller
 {
 
-    private function RandomCode($length = 15)
-    {
-        $code = '';
-        $total = 0;
-        do {
-            if (rand(0, 1) == 0) {
-                $code .= chr(rand(97, 122)); // ASCII code from **a(97)** to **z(122)**
-            } else {
-                $code .= rand(0, 9); // Numbers!!
-            }
-            $total++;
-        } while ($total < $length);
-        return $code;
-    }
-
     private function sendUserCreationEmail($firstname, $email, $password)
     {
         $details = [
@@ -43,7 +28,10 @@ class UserController extends Controller
         $lastname = $req->lastName;
         $email = $req->email;
         $email_suffix = explode("@", $req->email)[1];
-        $tel = $req->tel;
+        $tel = $this->formatIntlPhoneNo($req->tel);
+        $gender = $req->gender;
+        $grade = $req->grade;
+        $roleName = $req->roleName;
         $hash = password_hash("LearningPlatform", PASSWORD_DEFAULT);
         $newtoken = $this->RandomCode();
 
@@ -56,7 +44,11 @@ class UserController extends Controller
             if ($query[0]->emailSuffix === $email_suffix) {
                 $companyID = $query[0]->companyID;
 
-                DB::table("users")->insert(["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userPassword" => $hash, "userRoleID" => 2, "companyID" => $companyID, "token" => $newtoken]);
+                $queryForGroupCategory = DB::table("groupRole")->where("roleName", "=", $roleName)->get();
+                //Get user groupRoleID for either Agent, Supervisor, or Manager
+                $groupRoleId = $queryForGroupCategory[0]->groupRoleId;
+
+                DB::table("users")->insert(["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userGender" => $gender, "userGrade"=> $grade, "userPassword" => $hash, "userRoleID" => 2, "groupRoleId" => $groupRoleId, "companyID" => $companyID, "token" => $newtoken]);
 
                 $this->sendUserCreationEmail($firstname, $email, "LearningPlatform");
 
@@ -66,6 +58,71 @@ class UserController extends Controller
             }
         } else {
             return response()->json(["success" => false, "message" => "User Already Registered"], 400);
+        }
+    }
+
+    public function editCompanyUser (Request $req) {
+        $token = $req->token;
+        $firstname = $req->firstName;
+        $lastname = $req->lastName;
+        $email = $req->email;
+        $userToken = $req->userToken;
+        $email_suffix = explode("@", $req->email)[1];
+        $tel = $this->formatIntlPhoneNo($req->tel);
+        $gender = $req->gender;
+        $grade = $req->grade;
+
+        if ($userToken) {
+            $queryUserTable = DB::table("users")->where("token", "=", $userToken)->orWhere("userEmail", "=", $email)->get();
+        } else
+            $queryUserTable = DB::table("users")->where("userEmail", "=", $email)->get();
+
+        
+        if (count($queryUserTable) === 1) {
+            
+            $query = DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->select(["company.emailSuffix", "company.companyID"])->where("users.token", "=", $token)->where("users.userRoleID", "=", 1)->get();
+            $userID = $queryUserTable[0]->userID;
+
+            $adminCompanyID = $query[0]->companyID;
+            $userCompanyID = $queryUserTable[0]->companyID;
+
+            if ($adminCompanyID === $userCompanyID) {
+            
+                if ($query[0]->emailSuffix === $email_suffix) {
+
+                    DB::table("users")->where("userID", "=", $userID)->update(["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userGender" => $gender, "userGrade"=> $grade]);
+
+                    return response()->json(["success" => true, "message" => "User successfully updated"]);
+                } else {
+                    return response()->json(["success" => false, "message" => "User Email not Company Email"], 400);
+                }
+            }else 
+            return response()->json(["success" => true, "message" => "Admin does not belong to this user's company"]);
+        } else {
+            return response()->json(["success" => false, "message" => "User does not exist"], 400);
+        }
+    }
+    public function deleteCompanyUser (Request $req) {
+        $token = $req->token;
+        $userID = $req->userID;
+        $userToken = $req->userToken;
+
+        $table = DB::table("users")->where("token", "=", $token)->get();
+        $adminCompanyID = $table[0]->companyID;
+
+        $query = DB::table("users")->where("userID", "=", $userID)->orWhere("token", "=", $userToken)->get();
+        
+        if (count($query) === 1) {
+            $userCompanyID = $query[0]->companyID;
+
+            if ($adminCompanyID === $userCompanyID) {
+                DB::table("users")->where("userID", "=", $userID)->delete();
+                return response()->json(["success" => true, "message" => "User successfully deleted"]);
+            }else 
+                return response()->json(["success" => true, "message" => "Admin does not belong to this user's company"]);
+            
+        } else {
+            return response()->json(["success" => false, "message" => "User does not exist"], 400);
         }
     }
 

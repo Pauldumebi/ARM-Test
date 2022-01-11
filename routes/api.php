@@ -37,6 +37,8 @@ Route::prefix("v1")->group(function () {
 // User Controller Endpoints
 Route::prefix("v1")->middleware("isAdmin")->group(function () {
     Route::post("/user", [UserController::class, "createCompanyUser"]);
+    Route::put("/edit-user", [UserController::class, "editCompanyUser"]);
+    Route::delete("/delete-user", [UserController::class, "deleteCompanyUser"]);
     Route::post("/companyusers", [UserController::class, "getCompanyUsers"]);
 });
 

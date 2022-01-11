@@ -213,31 +213,37 @@ class CoursesController extends Controller
         ->groupBy("module.courseID")
         ->get();
 
-        $userID = $query[0]->userID;
-
-        foreach ($query as $row) {
-            $courseID = $row->courseID;
-            // $userID = $row->userID;
-            $query2 = DB::table("courseTrackerLog")
-            ->join("module", "courseTrackerLog.moduleID", "=", "module.moduleID")
-            ->join("course", "module.courseID", "=", "course.courseID")
-            ->selectRaw("count(courseTrackerLog.status = 'pass') as modules_completed")->where("userID", "=", $userID)->where("course.courseID", "=", $courseID)->get();
-
-            $query3 = DB::table("courseAssessmentLog")->where("userID", "=", $userID)->where("courseID", "=", $courseID)->orderBy('score', 'DESC')->get();
-
-            $row->modules_completed=$query2[0]->modules_completed;
-
-            if (count($query3) > 0)
-                $row->course_assessment_status=$query3[0]->status;
-            else 
-                $row->course_assessment_status=null;
-        }
-
         if (count($query) > 0) {
+        
+            $userID = $query[0]->userID;
+
+            foreach ($query as $row) {
+                $courseID = $row->courseID;
+                // $userID = $row->userID;
+                $query2 = DB::table("courseTrackerLog")
+                ->join("module", "courseTrackerLog.moduleID", "=", "module.moduleID")
+                ->join("course", "module.courseID", "=", "course.courseID")
+                ->selectRaw("count(courseTrackerLog.status = 'pass') as modules_completed")->where("userID", "=", $userID)->where("course.courseID", "=", $courseID)->get();
+
+                $query3 = DB::table("courseAssessmentLog")->where("userID", "=", $userID)->where("courseID", "=", $courseID)->orderBy('score', 'DESC')->get();
+                
+                // if (count($query2) > 0)
+                //     $row->modules_completed=$query2[0]->modules_completed;
+                // else
+                //     $row->modules_completed=null;
+
+
+                $row->modules_completed=$query2[0]->modules_completed;
+
+                if (count($query3) > 0)
+                    $row->course_assessment_status=$query3[0]->status;
+                else 
+                    $row->course_assessment_status=null;
+            }
             return response()->json(["success" => true, "enrolledCourses" => $query]);
-        } else {
-            return response()->json(["success" => true, "enrolledCourses" => [], "message" => "No Enrolled Courses"]);
-        }
+            
+        } else 
+        return response()->json(["success" => true, "enrolledCourses" => [], "message" => "No Enrolled Courses"]);
     }
   
     public function getCourseModuleTopics(Request $req)
