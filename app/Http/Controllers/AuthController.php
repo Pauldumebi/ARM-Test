@@ -8,20 +8,6 @@ use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
-    private function RandomCode($length = 50)
-    {
-        $code = '';
-        $total = 0;
-        do {
-            if (rand(0, 1) == 0) {
-                $code .= chr(rand(97, 122)); // ASCII code from **a(97)** to **z(122)**
-            } else {
-                $code .= rand(0, 32); // Numbers!!
-            }
-            $total++;
-        } while ($total < $length);
-        return $code;
-    }
 
     private function sendVerifyEmail($firstname, $email, $email_token)
     {
@@ -55,7 +41,7 @@ class AuthController extends Controller
         $lastname = $req->lastName;
         $email = $req->email;
         $adminRole = $req->adminRole;
-        $tel = $req->tel;
+        $tel = $this->formatIntlPhoneNo($req->tel);
         $hash = password_hash($req->password, PASSWORD_DEFAULT);
         $token = $this->RandomCode();
         $email_token = $this->RandomCode();
