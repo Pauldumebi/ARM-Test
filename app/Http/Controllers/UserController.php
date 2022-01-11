@@ -28,15 +28,10 @@ class UserController extends Controller
         $lastname = $req->lastName;
         $email = $req->email;
         $email_suffix = explode("@", $req->email)[1];
-<<<<<<< HEAD
-        $tel = formatIntlPhoneNo($req->tel);
-        $newtel= $this->formatIntlPhoneNo();
-=======
         $tel = $this->formatIntlPhoneNo($req->tel);
         $gender = $req->gender;
         $grade = $req->grade;
         $roleName = $req->roleName;
->>>>>>> fd7cb508108df5f4a0de6f046ddc942dfec6e800
         $hash = password_hash("LearningPlatform", PASSWORD_DEFAULT);
         $newtoken = $this->RandomCode();
         $courseCategory= $req->courseCategory;
@@ -57,20 +52,15 @@ class UserController extends Controller
 
                 DB::table("users")->insert(["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userGender" => $gender, "userGrade"=> $grade, "userPassword" => $hash, "userRoleID" => 2, "groupRoleId" => $groupRoleId, "companyID" => $companyID, "token" => $newtoken]);
 
-                $this->sendUserCreationEmail($firstname, $email, "LearningPlatform");
+                $courses= DB::table('course')->where("roleName","=", $queryForGroupCategory)->get();
+                foreach ($courses as $course){
+                   $courseID=$course->courseID;
+                   DB::table('CourseEnrolment')->insert(["CourseID" => $courseID , "userID"=>$userID]);
 
-<<<<<<< HEAD
-                //Enroll user to default courses
-                $courses= DB::table("course")->where("courseCategory","=", $courseCategory)->get();
-
-                foreach($courses as $course){
-                    $courseID=$course->courseID;
-                    DB::table("CourseEnrollment")->insert(["courseID"=>$courseID, "userID"=>$userID]);
                 }
 
+                $this->sendUserCreationEmail($firstname, $email, "LearningPlatform");
 
-=======
->>>>>>> fd7cb508108df5f4a0de6f046ddc942dfec6e800
                 return response()->json(["success" => true, "message" => "User Account Created"]);
             } else {
                 return response()->json(["success" => false, "message" => "User Email not Company Email"], 400);
