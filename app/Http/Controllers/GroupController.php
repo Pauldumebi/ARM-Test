@@ -21,12 +21,11 @@ class GroupController extends Controller
         }
     }
 
-    private function assignedACourse($email, $firstname)
+    private function assignedACourse($firstname, $email)
     {
         $details = [
             'name' => $firstname,
-            'email' => $email,
-            'websiteLink' => 'https://learningplatform.sandbox.9ijakids.com'
+            'login' => 'https://learningplatform.sandbox.9ijakids.com'
         ];
         Mail::to($email)->send(new \App\Mail\AssignedACourse($details));
     }
@@ -36,7 +35,8 @@ class GroupController extends Controller
         // Checks if token has a corresponding user in the DB and return the userID and companyID
         if (DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 2)->where("companyID", "=", $companyID)->exists()) {
             $user = DB::table("users")->where("token", "=", $token)->get();
-            return ["userExists" => true, "companyID" => $user[0]->companyID, "userID" => $user[0]->userID];
+            $name = $user[0]->userFirstName.' '.$user[0]->userLastName;
+            return ["userExists" => true, "companyID" => $user[0]->companyID, "userID" => $user[0]->userID, "name" => $name];
         } else {
             return ["userExists" => false];
         }
@@ -210,23 +210,18 @@ class GroupController extends Controller
 
     public function unassignCourse(Request $req)
     {
-
         $token = $req->token;
         $courseid = $req->courseID;
         $groupid = $req->groupid;
-
 
         $checkToken = $this->isAdmin($token);
         // Checks if the token belongs to an company Admin User
         if ($checkToken["isAdmin"]) {
             // Check if the group id matches a group for the Admin's company
             if (DB::table("group")->where("groupID", "=", $groupid)->where("companyID", "=", $checkToken["companyID"])->exists()) {
-
                 // Checks if the group is really assigned to the course
                 if (DB::table("groupEnrolment")->where("courseID", "=", $courseid)->where("groupID", "=", $groupid)->exists()) {
-
                     DB::table("courseEnrolment")->where("groupid", "=", $groupid)->where("courseID", "=", $courseid)->delete();
-
                     DB::table("groupEnrolment")->where("groupid", "=", $groupid)->where("courseID", "=", $courseid)->delete();
                     return response()->json(["success" => true, "message" => "Unassignment Successful"]);
                 } else {
@@ -245,14 +240,14 @@ class GroupController extends Controller
         $token = $req->token;
         $usertokenArray = $req->usertoken;
         $groupid = $req->groupid;
-
-        foreach ($usertokenArray as $usertoken) {
-
-
-
-            $checkToken = $this->isAdmin($token);
-            // Check if token is that of a Company Admin User
-            if ($checkToken["isAdmin"]) {
+        $checkToken = $this->isAdmin($token);
+        //Check if value coming is an array if not cast into an array
+        (is_array($usertokenArray)) ? $usertokenArray : [$usertokenArray];
+        // Check if token is that of a Company Admin User
+        if ($checkToken["isAdmin"]) {
+            $userOnlyNoCourse = [];
+            $userAndCourseEnrolment = [];
+            foreach ($usertokenArray as $usertoken) {
                 $userExists = $this->userExists($usertoken, $checkToken["companyID"]);
                 // Check if the user to be added to a group exists for the Admin Company
                 if ($userExists["userExists"]) {
@@ -261,7 +256,9 @@ class GroupController extends Controller
                         // Check if the group has NOT been assigned to a course already
                         if (DB::table("groupEnrolment")->where("groupID", "=", $groupid)->doesntExist()) {
                             DB::table("userGroup")->updateOrInsert(["userID" => $userExists["userID"], "groupID" => $groupid]);
-                            return response()->json(["success" => true, "message" => "User Added Successfully"]);
+                            $message =$userExists["name"].' '."successfully added";
+                            array_push($userOnlyNoCourse, $message);
+                            // return response()->json(["success" => true, "message" => "User Added Successfully"]);
                         } else {
                             $courses = DB::table("groupEnrolment")->join("course", "course.courseID", "=", "groupEnrolment.courseID")->where("groupID", "=", $groupid)->get();
                             $i = -1;
@@ -279,7 +276,10 @@ class GroupController extends Controller
                             }
                             // Checks if any of the courses attached to the Group does not have enough seats
                             if (in_array(false, $result)) {
-                                return response()->json(["success" => false, "message" => "No more Seats in Course(s) assigned to Group", "coursesNoSeats" => $coursesNoSeat], 400);
+                                if ($userOnlyNoCourse || $userAndCourseEnrolment) {
+                                    return response()->json(["success" => false, "message" => [$userOnlyNoCourse, $userAndCourseEnrolment], "error" => "No more Seats in Course(s) assigned to Group", "coursesNoSeats" => $coursesNoSeat], 400);
+                                }else
+                                    return response()->json(["success" => false, "message" => "No more Seats in Course(s) assigned to Group", "coursesNoSeats" => $coursesNoSeat], 400);
                             } else {
                                 DB::table("userGroup")->updateOrInsert(["userID" => $userExists["userID"], "groupID" => $groupid]);
                                 $user = DB::table("users")->where("userID", "=", $userExists["userID"])->get();
@@ -288,20 +288,28 @@ class GroupController extends Controller
                                     DB::table("courseEnrolment")->updateOrInsert(["userID" => $userExists["userID"], "courseID" => $course->courseID], ["groupID" => $groupid]);
                                     $this->assignedACourse($user[0]->userFirstName, $user[0]->userEmail);
                                 }
-                                return response()->json(["success" => true, "message" => "User Added Successfully"]);
+                                $message = $userExists["name"].' '."added Successfully and enrolled to course";
+                                array_push($userAndCourseEnrolment, $message);
+                                // return response()->json(["success" => true, "message" => "User Added Successfully"]);
                             }
                         }
                     } else {
                         return response()->json(["success" => false, "message" => "Group does not exist"], 400);
                     }
                 } else {
-                    return response()->json(["success" => false, "message" => "Users does not exist"], 400);
+                    $message =$userExists["name"].' '."does not exist";
+                    array_push($userOnlyNoCourse, $message);
                 }
-            } else {
-                return response()->json(["success" => false, "message" => "User not Admin"], 401);
             }
-
+            if ($userOnlyNoCourse) {
+                return response()->json(["success" => true, "message" => [$userOnlyNoCourse]]);
+            }
+            return response()->json(["success" => true, "message" => [$userAndCourseEnrolment]]);
+        } else {
+            return response()->json(["success" => false, "message" => "User not Admin"], 401);
         }
+
+       
             // $checkToken = $this->isAdmin($token);
             // Check if token is that of a Company Admin User
             // if ($checkToken["isAdmin"]) {
@@ -356,7 +364,6 @@ class GroupController extends Controller
 
     public function removeUser(Request $req)
     {
-
         $token = $req->token;
         $usertoken = $req->usertoken;
         $groupid = $req->groupid;
