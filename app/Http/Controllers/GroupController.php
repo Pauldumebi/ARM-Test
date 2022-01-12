@@ -111,7 +111,6 @@ class GroupController extends Controller
 
     public function removeGroup(Request $req)
     {
-
         $token = $req->token;
         $groupid = $req->groupid;
 
@@ -238,11 +237,10 @@ class GroupController extends Controller
     public function addUser(Request $req)
     {
         $token = $req->token;
-        $usertokenArray = $req->usertoken;
+        $usertokenArray =(is_array($req->usertoken)) ? $req->usertoken : [$req->usertoken];
         $groupid = $req->groupid;
         $checkToken = $this->isAdmin($token);
-        //Check if value coming is an array if not cast into an array
-        (is_array($usertokenArray)) ? $usertokenArray : [$usertokenArray];
+    
         // Check if token is that of a Company Admin User
         if ($checkToken["isAdmin"]) {
             $userOnlyNoCourse = [];

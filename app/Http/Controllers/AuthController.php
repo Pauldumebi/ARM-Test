@@ -85,9 +85,11 @@ class AuthController extends Controller
         $email = $req->email;
         $password = $req->password;
 
-
-        $query = DB::table("users")->join("role", "users.userRoleID", "=", "role.roleID")->where("users.userEmail", "=", $email)->select(["users.*", "role.roleName"])->get();
-
+        $query = DB::table("users")->join("role", "users.userRoleID", "=", "role.roleID")
+        ->join("groupRole", "groupRole.groupRoleId", "=", "users.groupRoleId" )
+        ->where("users.userEmail", "=", $email)->select(["users.*", "role.roleName", 
+        "groupRole.roleName as groupRoleName"
+        ])->get();
         if (count($query) === 1) {
             $user = $query[0];
             $pass_ok = password_verify($password, $user->userPassword);
@@ -104,8 +106,10 @@ class AuthController extends Controller
                     // DB::table("login_logs")->insert([ "email" => $email, "message" => "login successful", "status" => 200]);
                     // $userData = ["token" => $token, "role" => $user->roleName,];
                 // }
-
-                $userData = ["token" => $user->token, "role" => $user->roleName,];
+                $name = $user->userFirstName.' '.$user->userLastName;
+                $userData = ["name"=> $name, "token" => $user->token, "role" => $user->roleName, 
+                "groupRoleName"=> $user->groupRoleName
+                ];
                 
                 return response()->json(["success" => true, "data" => $userData], 200);
             } else {
