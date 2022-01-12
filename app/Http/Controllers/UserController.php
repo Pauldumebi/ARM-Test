@@ -34,6 +34,8 @@ class UserController extends Controller
         $roleName = $req->roleName;
         $hash = password_hash("LearningPlatform", PASSWORD_DEFAULT);
         $newtoken = $this->RandomCode();
+        $courseCategory= $req->courseCategory;
+        
 
 
         if (DB::table("users")->where("userEmail", "=", $email)->doesntExist()) {
@@ -49,6 +51,13 @@ class UserController extends Controller
                 $groupRoleId = $queryForGroupCategory[0]->groupRoleId;
 
                 DB::table("users")->insert(["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userGender" => $gender, "userGrade"=> $grade, "userPassword" => $hash, "userRoleID" => 2, "groupRoleId" => $groupRoleId, "companyID" => $companyID, "token" => $newtoken]);
+
+                $courses= DB::table('course')->where("roleName","=", $queryForGroupCategory)->get();
+                foreach ($courses as $course){
+                   $courseID=$course->courseID;
+                   DB::table('CourseEnrolment')->insert(["CourseID" => $courseID , "userID"=>$userID]);
+
+                }
 
                 $this->sendUserCreationEmail($firstname, $email, "LearningPlatform");
 
