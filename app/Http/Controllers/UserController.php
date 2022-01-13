@@ -15,9 +15,7 @@ class UserController extends Controller
             'name' => $firstname,
             'password' => $password,
             'login' => 'https://learningplatform.sandbox.9ijakids.com/login',
-
         ];
-
         Mail::to($email)->send(new \App\Mail\CreateUser($details));
     }
 
@@ -34,31 +32,24 @@ class UserController extends Controller
         $roleName = $req->roleName;
         $hash = password_hash("LearningPlatform", PASSWORD_DEFAULT);
         $newtoken = $this->RandomCode();
-        $courseCategory= $req->courseCategory;
-        
-
+        // $changedRecommendedCourses= $req->changedRecommendedCourses;
 
         if (DB::table("users")->where("userEmail", "=", $email)->doesntExist()) {
-
-            $query = DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->select(["company.emailSuffix", "company.companyID"])->where("users.token", "=", $token)->where("users.userRoleID", "=", 1)->get();
-
+            $query = DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->select(["users.userID","company.emailSuffix", "company.companyID"])->where("users.token", "=", $token)->where("users.userRoleID", "=", 1)->get();
 
             if ($query[0]->emailSuffix === $email_suffix) {
                 $companyID = $query[0]->companyID;
-
                 $queryForGroupCategory = DB::table("groupRole")->where("roleName", "=", $roleName)->get();
                 //Get user groupRoleID for either Agent, Supervisor, or Manager
                 $groupRoleId = $queryForGroupCategory[0]->groupRoleId;
+                DB::table("users")->insertGetId(["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userGender" => $gender, "userGrade"=> $grade, "userPassword" => $hash, "userRoleID" => 2, "groupRoleId" => $groupRoleId, "companyID" => $companyID, "token" => $newtoken]);
 
-                DB::table("users")->insert(["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userGender" => $gender, "userGrade"=> $grade, "userPassword" => $hash, "userRoleID" => 2, "groupRoleId" => $groupRoleId, "companyID" => $companyID, "token" => $newtoken]);
-
-                $courses= DB::table('course')->where("roleName","=", $queryForGroupCategory)->get();
-                foreach ($courses as $course){
-                   $courseID=$course->courseID;
-                  $query= DB::table('course')->select("courseName","=", $courseName, "courseDescription","=",$courseDescription)->limit(4)->get();
-                   return response()->json(["success"=> true, "message"=>[$query,"Here are some recommended courses you can take."]]);
-
-                }
+                //Check if recommended courses are altered else get from db
+                // $courses = $changedRecommendedCourses ? $changedRecommendedCourses : DB::table('course')->where("courseCategory","=", $roleName)->limit(4)->get();
+                // foreach ($courses as $course){
+                //    $courseID=$course->courseID;
+                //    DB::table("courseEnrolment")->insert(["CourseID" => $courseID , "userID"=>$userID]);
+                // }
 
                 $this->sendUserCreationEmail($firstname, $email, "LearningPlatform");
 
@@ -72,13 +63,15 @@ class UserController extends Controller
     }
 
     public function editCompanyUser (Request $req) {
-        $adminToken = $req->adminToken;
+        $adminToken = $req->token;
         $firstname = $req->firstName;
         $lastname = $req->lastName;
         $email = $req->email;
         $userToken = $req->userToken;
+        $employeeID = $req->employeeID;
+        $location = $req->location;
         $email_suffix = explode("@", $req->email)[1];
-        $tel = $this->formatIntlPhoneNo($req->tel);
+        // $tel = $this->formatIntlPhoneNo($req->tel);
         $gender = $req->gender;
         $grade = $req->grade;
 
@@ -86,22 +79,17 @@ class UserController extends Controller
             $queryUserTable = DB::table("users")->where("token", "=", $userToken)->orWhere("userEmail", "=", $email)->get();
         } else
             $queryUserTable = DB::table("users")->where("userEmail", "=", $email)->get();
-
         
         if (count($queryUserTable) === 1) {
-            
             $query = DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->select(["company.emailSuffix", "company.companyID"])->where("users.token", "=", $adminToken)->where("users.userRoleID", "=", 1)->get();
             $userID = $queryUserTable[0]->userID;
-
             $adminCompanyID = $query[0]->companyID;
             $userCompanyID = $queryUserTable[0]->companyID;
-
             if ($adminCompanyID === $userCompanyID) {
-            
                 if ($query[0]->emailSuffix === $email_suffix) {
-
-                    DB::table("users")->where("userID", "=", $userID)->update(["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userGender" => $gender, "userGrade"=> $grade]);
-
+                    DB::table("users")->where("userID", "=", $userID)->update(["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, 
+                    // "userPhone" => $tel, 
+                    "userGender" => $gender, "userGrade"=> $grade, "employeeID" => $employeeID, "location" => $location]);
                     return response()->json(["success" => true, "message" => "User successfully updated"]);
                 } else {
                     return response()->json(["success" => false, "message" => "User Email not Company Email"], 400);
@@ -112,26 +100,24 @@ class UserController extends Controller
             return response()->json(["success" => false, "message" => "User does not exist"], 400);
         }
     }
-    
-    public function deleteCompanyUser (Request $req) {
-        $adminToken = $req->adminToken;
-        $userID = $req->userID;
-        $userToken = $req->userToken;
 
+    public function deleteCompanyUser ($adminToken, $userID) {
+        // $token = $req->token;
+        // $userID = $req->userID;
+        // $userToken = $req->userToken;
         $table = DB::table("users")->where("token", "=", $adminToken)->get();
         $adminCompanyID = $table[0]->companyID;
 
-        $query = DB::table("users")->where("userID", "=", $userID)->orWhere("token", "=", $userToken)->get();
-        
+        $query = DB::table("users")->where("userID", "=", $userID)
+        // ->orWhere("token", "=", $userToken)
+        ->get();
         if (count($query) === 1) {
             $userCompanyID = $query[0]->companyID;
-
             if ($adminCompanyID === $userCompanyID) {
                 DB::table("users")->where("userID", "=", $userID)->delete();
                 return response()->json(["success" => true, "message" => "User successfully deleted"]);
             }else 
-                return response()->json(["success" => true, "message" => "Admin does not belong to this user's company"]);
-            
+                return response()->json(["success" => true, "message" => "Admin does not belong to this user's company"]); 
         } else {
             return response()->json(["success" => false, "message" => "User does not exist"], 400);
         }
@@ -139,18 +125,36 @@ class UserController extends Controller
 
     public function getCompanyUsers(Request $req)
     {
-
         $token = $req->token;
-
+        $page_number = $req->page_number;
+        $page_size = $req->page_size;
+        $offset = ($page_number - 1) * $page_size;
         $query = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->select(["companyID"])->get();
-
-
         $companyID = $query[0]->companyID;
 
-        $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->select("userFirstName", "userLastname", "userEmail", "token AS usertoken")->get();
-
+        $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->skip($offset)->take($page_size)->get();
+        $total = count($users);
         if (count($users) > 0) {
-            return response()->json(["success" => true, "users" => $users]);
+            return response()->json(["success" => true, "users" => $users, "total"=> $total]);
+        } else {
+            return response()->json(["success" => true, "users" => [], "message" => "No Users Available"]);
+        }
+    }
+
+    public function companyUserSearch (Request $req) {
+        $token = $req->token;
+        $searchParams = $req->searchParams;
+        $page_number = $req->page_number;
+        $page_size = $req->page_size;
+        $offset = ($page_number - 1) * $page_size;
+
+        $query = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->select(["companyID"])->get();
+        $companyID = $query[0]->companyID;
+
+        $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->where("employeeID", "=", $searchParams)->orWhere("userFirstName", "=", $searchParams)->orWhere("userLastname", "=", $searchParams)->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->skip($offset)->take($page_size)->get();
+        $total = count($users);
+        if (count($users) > 0) {
+            return response()->json(["success" => true, "users" => $users, "total"=> $total]);
         } else {
             return response()->json(["success" => true, "users" => [], "message" => "No Users Available"]);
         }
