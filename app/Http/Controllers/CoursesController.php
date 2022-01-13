@@ -96,7 +96,7 @@ class CoursesController extends Controller
                         if ($seats["Assigned"] < $seats["Total"]) {
                             $this->assignedACourse($checkUser["userFirstName"], $checkUser["userEmail"]);
 
-                            DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID]);
+                            DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID, "companyID" => $companyID]);
 
                             return ["success" => true, "message" => "Enrollment successful", "status" => 200];
                         }
@@ -241,7 +241,7 @@ class CoursesController extends Controller
                     $row->course_assessment_status=null;
             }
             return response()->json(["success" => true, "enrolledCourses" => $query]);
-            
+
         } else 
         return response()->json(["success" => true, "enrolledCourses" => [], "message" => "No Enrolled Courses"]);
     }
