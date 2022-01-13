@@ -55,7 +55,8 @@ class UserController extends Controller
                 $courses= DB::table('course')->where("roleName","=", $queryForGroupCategory)->get();
                 foreach ($courses as $course){
                    $courseID=$course->courseID;
-                   DB::table('CourseEnrolment')->insert(["CourseID" => $courseID , "userID"=>$userID]);
+                  $query= DB::table('course')->select("courseName","=", $courseName, "courseDescription","=",$courseDescription)->limit(4)->get();
+                   return response()->json(["success"=> true, "message"=>[$query,"Here are some recommended courses you can take."]]);
 
                 }
 
