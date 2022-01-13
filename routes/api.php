@@ -5,9 +5,10 @@ use App\Http\Controllers\CoursesController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportingController;
 use App\Http\Controllers\SiteAdminController;
 use App\Http\Controllers\UserController;
-use Illuminate\Http\Request;
+// use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -40,7 +41,7 @@ Route::prefix("v1")->middleware("isAdmin")->group(function () {
     Route::put("/edit-user", [UserController::class, "editCompanyUser"]);
     Route::delete("/delete-user/{userID}", [UserController::class, "deleteCompanyUser"]);
     Route::post("/companyusers", [UserController::class, "getCompanyUsers"]);
-    Route::post("/company-users-search", [UserController::class, "companyUserSearch"]);
+    Route::post("/company-users-search", [UserController::class, "getCompanyUsersOthers"]);
 });
 
 // Course Controller Endpoints
@@ -109,4 +110,9 @@ Route::prefix("v1")->middleware("isSiteAdmin")->group(function () {
     // Route::post("/admin-topic", [SiteAdminController::class, "addTopic"]);
     Route::post("/test-upload", [SiteAdminController::class, "testFileUpload"])->withoutMiddleware("isSiteAdmin");
     Route::post("/test-folderupload", [SiteAdminController::class, "testFolderUpload"])->withoutMiddleware("isSiteAdmin");
+});
+
+//Reporting Controller
+Route::prefix("v1")->middleware("isAdmin")->group(function () {
+    Route::post("/all-courses", [ReportingController::class, "allCourses"]);
 });

@@ -126,33 +126,41 @@ class UserController extends Controller
     public function getCompanyUsers(Request $req)
     {
         $token = $req->token;
-        $page_number = $req->page_number;
-        $page_size = $req->page_size;
-        $offset = ($page_number - 1) * $page_size;
+
         $query = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->select(["companyID"])->get();
         $companyID = $query[0]->companyID;
 
-        $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->skip($offset)->take($page_size)->get();
-        $total = count($users);
+        $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->get();
+
         if (count($users) > 0) {
-            return response()->json(["success" => true, "users" => $users, "total"=> $total]);
+            return response()->json(["success" => true, "users" => $users]);
         } else {
             return response()->json(["success" => true, "users" => [], "message" => "No Users Available"]);
         }
     }
 
-    public function companyUserSearch (Request $req) {
+    public function getCompanyUsersOthers(Request $req)
+    {
         $token = $req->token;
-        $searchParams = $req->searchParams;
         $page_number = $req->page_number;
         $page_size = $req->page_size;
+        $searchParams = $req->searchParams;
         $offset = ($page_number - 1) * $page_size;
 
         $query = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->select(["companyID"])->get();
         $companyID = $query[0]->companyID;
 
-        $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->where("employeeID", "=", $searchParams)->orWhere("userFirstName", "=", $searchParams)->orWhere("userLastname", "=", $searchParams)->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->skip($offset)->take($page_size)->get();
-        $total = count($users);
+        if ($searchParams) {
+            $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->where("employeeID", 'like', '%'.$searchParams.'%')->orWhere("userFirstName", 'like', '%'.$searchParams.'%')->orWhere("userLastname",  'like', '%'.$searchParams.'%')->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->skip($offset)->take($page_size)->get();
+        } elseif ($page_number && $page_size) {
+            $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->skip($offset)->take($page_size)->get();
+        }else
+            $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->get();
+
+            $total = count($users);
+
+            // (count($users) > 0) ? (response()->json(["success" => true, "users" => $users, "total"=> $total])) : (response()->json(["success" => true, "users" => [], "message" => "No Users Available"]));
+
         if (count($users) > 0) {
             return response()->json(["success" => true, "users" => $users, "total"=> $total]);
         } else {
