@@ -34,4 +34,29 @@ class ReportingController extends Controller
             return response()->json(["success" => true, "message" => $queryForCourses]);
         }
     }
+
+    public function candidateDetails (Request $req ){
+        $token=$req->token;
+        $email= $req->email;
+        if ($token) {
+            $queryUserTable = DB::table("users")->where("token", "=", $token)->orWhere("userEmail", "=", $email)->get();
+        
+            if (count($queryUserTable) === 1) {
+             $query = DB::table("users")->join("role", "users.userRoleID", "=", "role.RoleID")->where("token", "=", $token)->select(["users.userID", "users.userFirstName", "users.userEmail","role.roleName","users.userGrade","users.location","users.userGender"])->get();
+             return response()->json(["success" => true, "message" => $queryUserTable]);
+                }
+        }
+    }
+
+    public function candidateTable (Request $req){
+        $token=$req->token;
+        $userEmail=$req->email;
+
+        if(DB::table('courseEnrolment')->join("users", "courseEnrolment.userID", "=", "users.userID")->where("users.userID","=", "courseEnrolment.usersID"))
+        $query=DB::table('course')->join("courseAssessmentLog","courseAssessmentLog.courseID", "=", "course.courseID")->select("courseAssessmentLog.score","courseAssessmentLog.status")->get();
+
+        
+        return response()->json(["success" => true, "message" => $query]);
+
+    }
 }
