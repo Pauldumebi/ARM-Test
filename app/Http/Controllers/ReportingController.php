@@ -37,8 +37,8 @@ class ReportingController extends Controller
 
     public function candidateDetails (Request $req ){
         $token=$req->token;
-        $email= $req->email;
-        if (DB::table("users")->where("email","=",$email)->exists()) {
+        $email= $req->userEmail;
+        if (DB::table("users")->where("userEmail","=",$email)->exists()) {
             // $queryUserTable = DB::table("users")->where("token", "=", $token)->orWhere("email", "=", $email)->get();
         
             // if (count($queryUserTable) === 1) {
