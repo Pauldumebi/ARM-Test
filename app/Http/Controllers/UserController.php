@@ -44,13 +44,6 @@ class UserController extends Controller
                 $groupRoleId = $queryForGroupCategory[0]->groupRoleId;
                 DB::table("users")->insertGetId(["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userGender" => $gender, "userGrade"=> $grade, "userPassword" => $hash, "userRoleID" => 2, "groupRoleId" => $groupRoleId, "companyID" => $companyID, "token" => $newtoken]);
 
-                //Check if recommended courses are altered else get from db
-                // $courses = $changedRecommendedCourses ? $changedRecommendedCourses : DB::table('course')->where("courseCategory","=", $roleName)->limit(4)->get();
-                // foreach ($courses as $course){
-                //    $courseID=$course->courseID;
-                //    DB::table("courseEnrolment")->insert(["CourseID" => $courseID , "userID"=>$userID]);
-                // }
-
                 $this->sendUserCreationEmail($firstname, $email, "LearningPlatform");
 
                 return response()->json(["success" => true, "message" => "User Account Created"]);
@@ -101,9 +94,9 @@ class UserController extends Controller
         }
     }
 
-    public function deleteCompanyUser ($adminToken, $userID) {
-        // $token = $req->token;
-        // $userID = $req->userID;
+    public function deleteCompanyUser (Request $req) {
+        $adminToken = $req->token;
+        $userID = $req->userID;
         // $userToken = $req->userToken;
         $table = DB::table("users")->where("token", "=", $adminToken)->get();
         $adminCompanyID = $table[0]->companyID;
@@ -158,8 +151,6 @@ class UserController extends Controller
             $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->get();
 
             $total = count($users);
-
-            // (count($users) > 0) ? (response()->json(["success" => true, "users" => $users, "total"=> $total])) : (response()->json(["success" => true, "users" => [], "message" => "No Users Available"]));
 
         if (count($users) > 0) {
             return response()->json(["success" => true, "users" => $users, "total"=> $total]);
