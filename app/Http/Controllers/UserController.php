@@ -12,9 +12,9 @@ class UserController extends Controller
     private function sendUserCreationEmail($firstname, $email, $password)
     {
         $details = [
-            'name' => $firstname,
-            'password' => $password,
-            'login' => 'https://learningplatform.sandbox.9ijakids.com/login',
+            "name" => $firstname,
+            "password" => $password,
+            "login" => "https://learningplatform.sandbox.9ijakids.com/login",
         ];
         Mail::to($email)->send(new \App\Mail\CreateUser($details));
     }
@@ -31,8 +31,7 @@ class UserController extends Controller
         $grade = $req->grade;
         $roleName = $req->roleName;
         $hash = password_hash("LearningPlatform", PASSWORD_DEFAULT);
-        $newtoken = $this->RandomCode();
-        // $changedRecommendedCourses= $req->changedRecommendedCourses;
+        $newtoken = $this->RandomCodeGenerator(80);
 
         if (DB::table("users")->where("userEmail", "=", $email)->doesntExist()) {
             $query = DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->select(["users.userID","company.emailSuffix", "company.companyID"])->where("users.token", "=", $token)->where("users.userRoleID", "=", 1)->get();
@@ -144,7 +143,7 @@ class UserController extends Controller
         $companyID = $query[0]->companyID;
 
         if ($searchParams) {
-            $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->where("employeeID", 'like', '%'.$searchParams.'%')->orWhere("userFirstName", 'like', '%'.$searchParams.'%')->orWhere("userLastname",  'like', '%'.$searchParams.'%')->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->skip($offset)->take($page_size)->get();
+            $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->where("employeeID", "like", "%".$searchParams."%")->orWhere("userFirstName", "like", "%".$searchParams."%")->orWhere("userLastname",  "like", "%".$searchParams."%")->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->skip($offset)->take($page_size)->get();
         } elseif ($page_number && $page_size) {
             $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->skip($offset)->take($page_size)->get();
         }else

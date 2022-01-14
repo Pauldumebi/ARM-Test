@@ -9,21 +9,38 @@ class ReportingController extends Controller
 {
     public function allCourses (Request $req) {
         $token = $req->token;
+        $userGender = $req->userGender;
+        $location = $req->location;
+        $roleName = $req->roleName;
+        $userGrade = $req->userGrade;
         $query = DB::table("users")->join("role", "users.userRoleID", "=", "role.RoleID")->where("token", "=", $token)->select(["companyID", "roleName"])->get();
         if ($query[0]->roleName === "admin") {
             $companyID = $query[0]->companyID;
 
-            $queryForCourses = DB::table("courseEnrolment")->join("course", "courseEnrolment.CourseID", "=", "course.CourseID")->where("companyID", "=", $companyID)->selectRaw("any_value(companyID) as companyID, course.courseID, courseName, count(userID) as enrolled")->groupBy("courseID")->get();
+            if ($userGender || $location || $userGrade || $roleName) {
+                $groupRoleID = null;
+                if ($roleName) {
+                    $queryForGroupRoleID = DB::table("groupRole")->where("roleName", "=", $roleName)->get();
+                    $groupRoleID = $queryForGroupRoleID[0]->groupRoleId;
+                }
+                $queryForCourses = DB::table("courseEnrolment")->join("course", "courseEnrolment.CourseID", "=", "course.CourseID")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("courseEnrolment.companyID", "=", $companyID)->where("groupRoleID", "like", "%". $groupRoleID."%")->where("userGrade", "like", "%". $userGrade."%")->where("location", "like", "%". $location."%")->where("userGender", "like", "%". $userGender."%")->selectRaw("any_value(courseEnrolment.companyID) as companyID, course.courseID, courseName, count(courseEnrolment.userID) as enrolled")->groupBy("courseID")->get();
+            } else
+                $queryForCourses = DB::table("courseEnrolment")->join("course", "courseEnrolment.CourseID", "=", "course.CourseID")->where("companyID", "=", $companyID)->selectRaw("any_value(companyID) as companyID, course.courseID, courseName, count(userID) as enrolled")->groupBy("courseID")->get();
+
+            if (!$queryForCourses) {
+                $queryForCourses = [];
+                return response()->json(["success" => true, "message" => $queryForCourses]);
+            }
 
             foreach ($queryForCourses as $course) {
                 $courseID=$course->courseID;
                 $totalEnrolled =$course->enrolled;
 
                 $queryForCompleted = DB::table("courseAssessmentLog")->join("users", "courseAssessmentLog.userID", "=", "users.userID")->where("status", "=", "pass")->where("courseID", "=", $courseID)->where("companyID", "=", $companyID)->groupBy("courseAssessmentLog.userID")->selectRaw("max(score) as complete")->get();
-                
-                $averageSum = DB::table("courseAssessmentLog")->join("users", "courseAssessmentLog.userID", "=", "users.userID")->where("companyID", "=", $companyID)->where("courseID", "=", $courseID)->selectRaw("round(avg(score), 0) as average")->get();
+            
+                $averageSum = DB::table("courseAssessmentLog")->join("users", "courseAssessmentLog.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("companyID", "=", $companyID)->selectRaw("round(avg(score), 0) as average")->get();
 
-                $averageRange = DB::table("courseAssessmentLog")->join("users", "courseAssessmentLog.userID", "=", "users.userID")->where("companyID", "=", $companyID)->where("courseID", "=", $courseID)->selectRaw("concat( MIN(score) , '-', MAX(score)) as average_range")->get();
+                $averageRange = DB::table("courseAssessmentLog")->join("users", "courseAssessmentLog.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("companyID", "=", $companyID)->selectRaw("concat( MIN(score) , '-', MAX(score)) as average_range")->get();
 
                 $complete = count($queryForCompleted);
                 $incomplete = $totalEnrolled - $complete;
