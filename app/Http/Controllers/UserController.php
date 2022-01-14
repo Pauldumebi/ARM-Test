@@ -12,9 +12,9 @@ class UserController extends Controller
     private function sendUserCreationEmail($firstname, $email, $password)
     {
         $details = [
-            'name' => $firstname,
-            'password' => $password,
-            'login' => 'https://learningplatform.sandbox.9ijakids.com/login',
+            "name" => $firstname,
+            "password" => $password,
+            "login" => "https://learningplatform.sandbox.9ijakids.com/login",
         ];
         Mail::to($email)->send(new \App\Mail\CreateUser($details));
     }
@@ -31,8 +31,7 @@ class UserController extends Controller
         $grade = $req->grade;
         $roleName = $req->roleName;
         $hash = password_hash("LearningPlatform", PASSWORD_DEFAULT);
-        $newtoken = $this->RandomCode();
-        // $changedRecommendedCourses= $req->changedRecommendedCourses;
+        $newtoken = $this->RandomCodeGenerator(80);
 
         if (DB::table("users")->where("userEmail", "=", $email)->doesntExist()) {
             $query = DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->select(["users.userID","company.emailSuffix", "company.companyID"])->where("users.token", "=", $token)->where("users.userRoleID", "=", 1)->get();
@@ -43,13 +42,6 @@ class UserController extends Controller
                 //Get user groupRoleID for either Agent, Supervisor, or Manager
                 $groupRoleId = $queryForGroupCategory[0]->groupRoleId;
                 DB::table("users")->insertGetId(["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userGender" => $gender, "userGrade"=> $grade, "userPassword" => $hash, "userRoleID" => 2, "groupRoleId" => $groupRoleId, "companyID" => $companyID, "token" => $newtoken]);
-
-                //Check if recommended courses are altered else get from db
-                // $courses = $changedRecommendedCourses ? $changedRecommendedCourses : DB::table('course')->where("courseCategory","=", $roleName)->limit(4)->get();
-                // foreach ($courses as $course){
-                //    $courseID=$course->courseID;
-                //    DB::table("courseEnrolment")->insert(["CourseID" => $courseID , "userID"=>$userID]);
-                // }
 
                 $this->sendUserCreationEmail($firstname, $email, "LearningPlatform");
 
@@ -101,9 +93,9 @@ class UserController extends Controller
         }
     }
 
-    public function deleteCompanyUser ($adminToken, $userID) {
-        // $token = $req->token;
-        // $userID = $req->userID;
+    public function deleteCompanyUser (Request $req) {
+        $adminToken = $req->token;
+        $userID = $req->userID;
         // $userToken = $req->userToken;
         $table = DB::table("users")->where("token", "=", $adminToken)->get();
         $adminCompanyID = $table[0]->companyID;
@@ -151,15 +143,13 @@ class UserController extends Controller
         $companyID = $query[0]->companyID;
 
         if ($searchParams) {
-            $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->where("employeeID", 'like', '%'.$searchParams.'%')->orWhere("userFirstName", 'like', '%'.$searchParams.'%')->orWhere("userLastname",  'like', '%'.$searchParams.'%')->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->skip($offset)->take($page_size)->get();
+            $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->where("employeeID", "like", "%".$searchParams."%")->orWhere("userFirstName", "like", "%".$searchParams."%")->orWhere("userLastname",  "like", "%".$searchParams."%")->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->skip($offset)->take($page_size)->get();
         } elseif ($page_number && $page_size) {
             $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->skip($offset)->take($page_size)->get();
         }else
             $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->get();
 
             $total = count($users);
-
-            // (count($users) > 0) ? (response()->json(["success" => true, "users" => $users, "total"=> $total])) : (response()->json(["success" => true, "users" => [], "message" => "No Users Available"]));
 
         if (count($users) > 0) {
             return response()->json(["success" => true, "users" => $users, "total"=> $total]);

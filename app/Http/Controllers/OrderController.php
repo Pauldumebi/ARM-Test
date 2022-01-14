@@ -29,7 +29,7 @@ class OrderController extends Controller
         $alreadyOrdered = [];
 
         foreach ($courses as $course) {
-            $orderNumber = $this->OrderID();
+            $orderNumber = $this->RandomCodeGenerator(6);
             // DB::table("orders")->updateOrInsert(["companyID" => $isAdmin["companyID"], "courseID" => $course["id"]], ["orderNumber" => $orderNumber,  "status" => "pending", "seats" => $course["seats"]]);
             if (DB::table("orders")->where("companyID", "=", $isAdmin["companyID"])->where("courseID", "=", $course["id"])->doesntExist()) {
                 DB::table("orders")->insert(["companyID" => $isAdmin["companyID"], "courseID" => $course["id"], "orderNumber" => $orderNumber,  "status" => "pending", "seats" => $course["seats"]]);

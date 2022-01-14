@@ -43,8 +43,8 @@ class AuthController extends Controller
         $adminRole = $req->adminRole;
         $tel = $this->formatIntlPhoneNo($req->tel);
         $hash = password_hash($req->password, PASSWORD_DEFAULT);
-        $token = $this->RandomCode();
-        $email_token = $this->RandomCode();
+        $token = $this->RandomCodeGenerator(80);
+        $email_token = $this->RandomCodeGenerator(80);
 
         if (DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->where("users.userEmail", "=", $email)->orWhere("company.companyName", "=", $companyName, "or")->orWhere("company.emailSuffix", "=", $companyEmailSuffix)->doesntExist()) {
             $id = DB::table("users")->insertGetId(
@@ -100,7 +100,7 @@ class AuthController extends Controller
                     // $userData = ["token" => $user->token, "role" => $user->roleName,];
                     
                 // } else {
-                    // $token = $this->RandomCode();
+                    // $token = $this->RandomCodeGenerator();
                     // DB::table("users")->where("userEmail", "=", $email)->update(["token" => $token]);
                     //Track Logins
                     // DB::table("login_logs")->insert([ "email" => $email, "message" => "login successful", "status" => 200]);
@@ -127,7 +127,7 @@ class AuthController extends Controller
     public function forgotPassword(Request $req)
     {
         $email = $req->email;
-        $forgot_password_token = $this->RandomCode();
+        $forgot_password_token = $this->RandomCodeGenerator(80);
         // $userExists = DB::table('users')->where('userEmail', '=', $email);
         if (DB::table('users')->where('userEmail', '=', $email)->exists()) {
             DB::table('users')->where('userEmail', '=', $email)->update(["forgot_password_token" => $forgot_password_token]);

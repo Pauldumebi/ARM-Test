@@ -39,7 +39,7 @@ Route::prefix("v1")->group(function () {
 Route::prefix("v1")->middleware("isAdmin")->group(function () {
     Route::post("/user", [UserController::class, "createCompanyUser"]);
     Route::put("/edit-user", [UserController::class, "editCompanyUser"]);
-    Route::delete("/delete-user/{userID}", [UserController::class, "deleteCompanyUser"]);
+    Route::delete("/delete-user", [UserController::class, "deleteCompanyUser"]);
     Route::post("/companyusers", [UserController::class, "getCompanyUsers"]);
     Route::post("/company-users-search", [UserController::class, "getCompanyUsersOthers"]);
 });
