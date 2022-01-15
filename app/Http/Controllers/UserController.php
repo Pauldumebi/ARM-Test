@@ -24,14 +24,16 @@ class UserController extends Controller
         $token = $req->token;
         $firstname = $req->firstName;
         $lastname = $req->lastName;
+        $employeeID = $req->employeeID;
         $email = $req->email;
         $email_suffix = explode("@", $req->email)[1];
         $tel = $this->formatIntlPhoneNo($req->tel);
         $gender = $req->gender;
         $grade = $req->grade;
+        $location = $req->location;
         $roleName = $req->roleName;
         $hash = password_hash("LearningPlatform", PASSWORD_DEFAULT);
-        $newtoken = $this->RandomCode();
+        $newtoken = $this->RandomCodeGenerator(80);
         // $changedRecommendedCourses= $req->changedRecommendedCourses;
 
         if (DB::table("users")->where("userEmail", "=", $email)->doesntExist()) {
@@ -42,7 +44,7 @@ class UserController extends Controller
                 $queryForGroupCategory = DB::table("groupRole")->where("roleName", "=", $roleName)->get();
                 //Get user groupRoleID for either Agent, Supervisor, or Manager
                 $groupRoleId = $queryForGroupCategory[0]->groupRoleId;
-                DB::table("users")->insertGetId(["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userGender" => $gender, "userGrade"=> $grade, "userPassword" => $hash, "userRoleID" => 2, "groupRoleId" => $groupRoleId, "companyID" => $companyID, "token" => $newtoken]);
+                DB::table("users")->insertGetId(["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userGender" => $gender, "userGrade"=> $grade, "userPassword" => $hash, "userRoleID" => 2, "groupRoleId" => $groupRoleId, "location" => $location, "companyID" => $companyID,  "employeeID" => $employeeID, "token" => $newtoken]);
 
                 //Recommend Courses
                 // $courses= DB::table('course')->where("roleName","=", $queryForGroupCategory)->get();
@@ -108,9 +110,9 @@ class UserController extends Controller
         }
     }
 
-    public function deleteCompanyUser ($adminToken, $userID) {
-        // $token = $req->token;
-        // $userID = $req->userID;
+    public function deleteCompanyUser (Request $req) {
+        $adminToken = $req->token;
+        $userID = $req->userID;
         // $userToken = $req->userToken;
         $table = DB::table("users")->where("token", "=", $adminToken)->get();
         $adminCompanyID = $table[0]->companyID;
@@ -124,7 +126,7 @@ class UserController extends Controller
                 DB::table("users")->where("userID", "=", $userID)->delete();
                 return response()->json(["success" => true, "message" => "User successfully deleted"]);
             }else 
-                return response()->json(["success" => true, "message" => "Admin does not belong to this user's company"]); 
+                return response()->json(["success" => true, "message" => "Admin does not belong to this users company"]); 
         } else {
             return response()->json(["success" => false, "message" => "User does not exist"], 400);
         }
@@ -139,7 +141,7 @@ class UserController extends Controller
         $query = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->select(["companyID"])->get();
         $companyID = $query[0]->companyID;
 
-        $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->skip($offset)->take($page_size)->get();
+        $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->get();
         $total = count($users);
         if (count($users) > 0) {
             return response()->json(["success" => true, "users" => $users, "total"=> $total]);
