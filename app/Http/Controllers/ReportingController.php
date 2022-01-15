@@ -67,11 +67,20 @@ class ReportingController extends Controller
             return response()->json(["success" => true, "message" => $queryForCourses]);
         }
     }
+    
+    // public function courseTable(Request $req){
+    //     $roleName=$req->roleName;
+    //     $course=$req->course;
+
+    //     query = DB::table("course")->join("role", "users.userRoleID", "=", "role.RoleID")->where("token", "=", $token)->select(["companyID", "roleName"])->get();
+    //     if ($query[0]->roleName === "admin") {
+
+    // }
 
     public function candidateDetails (Request $req ){
         $token=$req->token;
-        $email= $req->email;
-        if (DB::table("users")->where("email","=",$email)->exists()) {
+        $email= $req->userEmail;
+        if (DB::table("users")->where("userEmail","=",$email)->exists()) {
             // $queryUserTable = DB::table("users")->where("token", "=", $token)->orWhere("email", "=", $email)->get();
         
             // if (count($queryUserTable) === 1) {
