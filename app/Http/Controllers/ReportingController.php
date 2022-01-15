@@ -7,6 +7,19 @@ use Illuminate\Support\Facades\DB;
 
 class ReportingController extends Controller
 {
+    public function filterParams (Request $req) {
+        $token = $req->token;
+        $queryForCompanyId = DB::table("users")->where("token", "=", $token)->select("companyID")->get();
+        $companyID = $queryForCompanyId[0]->companyID;
+        $location = DB::table("users")->where("companyID", "=", $companyID)->selectRaw("distinct(location)")->get();
+        $queryForGrade = DB::table("users")->where("companyID", "=", $companyID)->selectRaw("distinct(userGrade)")->get();
+        $queryForRoleName = DB::table("groupRole")->selectRaw("roleName")->get();
+        $queryForGroup = DB::table("group")->join("users", "group.companyID", "=", "users.companyID")->where("group.companyID", "=", $companyID)->selectRaw("distinct(groupName)")->get();
+        $gender = ["M", "F"];
+
+        return response()->json(["success" => true, "location" => $location, "grade" => $queryForGrade, "roleName" => $queryForRoleName, "group" => $queryForGroup, "gender" => $gender]);
+    }
+    
     public function allCourses (Request $req) {
         $token = $req->token;
         $userGender = $req->userGender;
