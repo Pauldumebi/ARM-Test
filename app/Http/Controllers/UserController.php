@@ -135,9 +135,9 @@ class UserController extends Controller
     public function getCompanyUsers(Request $req)
     {
         $token = $req->token;
-        $page_number = $req->page_number;
-        $page_size = $req->page_size;
-        $offset = ($page_number - 1) * $page_size;
+        // $page_number = $req->page_number;
+        // $page_size = $req->page_size;
+        // $offset = ($page_number - 1) * $page_size;
         $query = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->select(["companyID"])->get();
         $companyID = $query[0]->companyID;
 
@@ -156,11 +156,14 @@ class UserController extends Controller
         $page_number = $req->page_number;
         $page_size = $req->page_size;
         $offset = ($page_number - 1) * $page_size;
-
         $query = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->select(["companyID"])->get();
         $companyID = $query[0]->companyID;
 
-        $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->where("employeeID", "=", $searchParams)->orWhere("userFirstName", "=", $searchParams)->orWhere("userLastname", "=", $searchParams)->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->skip($offset)->take($page_size)->get();
+        $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->where(function ($query) use ($searchParams) {
+            $query->where("employeeID","like", "%". $searchParams."%" )
+                  ->orWhere("userFirstName","like", "%".$searchParams."%" )
+                  ->orWhere("userLastname", "like", "%". $searchParams."%" );
+        })->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->skip($offset)->take($page_size)->get();
         $total = count($users);
         if (count($users) > 0) {
             return response()->json(["success" => true, "users" => $users, "total"=> $total]);
