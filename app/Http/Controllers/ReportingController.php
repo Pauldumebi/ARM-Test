@@ -19,7 +19,7 @@ class ReportingController extends Controller
 
         return response()->json(["success" => true, "location" => $location, "grade" => $queryForGrade, "roleName" => $queryForRoleName, "group" => $queryForGroup, "gender" => $gender]);
     }
-    
+
     public function allCourses (Request $req) {
         $token = $req->token;
         $userGender = $req->userGender;
@@ -67,15 +67,6 @@ class ReportingController extends Controller
             return response()->json(["success" => true, "message" => $queryForCourses]);
         }
     }
-    
-    // public function courseTable(Request $req){
-    //     $roleName=$req->roleName;
-    //     $course=$req->course;
-
-    //     query = DB::table("course")->join("role", "users.userRoleID", "=", "role.RoleID")->where("token", "=", $token)->select(["companyID", "roleName"])->get();
-    //     if ($query[0]->roleName === "admin") {
-
-    // }
 
     public function candidateDetails (Request $req ){
         $token=$req->token;
@@ -96,13 +87,17 @@ class ReportingController extends Controller
 
     public function candidateTable (Request $req){
         $token=$req->token;
-        $userEmail=$req->email;
+        $userID=$req->userID;
+        // $companyID=$companyID->companyID;
 
-        if(DB::table('courseEnrolment')->join("users", "courseEnrolment.userID", "=", "users.userID")->where("users.userID","=", "courseEnrolment.usersID"))
-        $query=DB::table('course')->join("courseAssessmentLog","courseAssessmentLog.courseID", "=", "course.courseID")->select("courseAssessmentLog.score","courseAssessmentLog.status")->get();
+        $queryForCandidate=DB::table("courseAssessmentLog")->join("course","course.courseID","=","courseAssessmentLog.courseID")->where("courseAssessmentLog.userID","=",$userID)->selectRaw("courseName,max(score) as score,any_value(courseAssessmentLog.courseID) as courseID")->groupBy("courseName")->get();
 
-        
-        return response()->json(["success" => true, "message" => $query]);
+        foreach($queryForCandidate as $courseID){
+            $courseID=$courseID->courseID;
+            // var_dump($courseID);
+            $query=DB::table("courseAssessmentLog")->join("users","users.userID","=","courseAssessmentLog.userID")->where("courseID", "=", $courseID)->selectRaw("concat(min(score),'-',max(score)) as averageRange")->get();
 
+        }
+            return response()->json(["success" => true, "message" => $queryForCandidate]);
+        }
     }
-}

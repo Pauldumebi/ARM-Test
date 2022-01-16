@@ -184,7 +184,7 @@ class CoursesController extends Controller
                 if (DB::table("courseEnrolment")->where("userID", "=", $userID)->where("courseID", "=", $courseID)->doesntExist()) {
 
                     DB::table("courseSeat")->insert(["courseID" => $courseID, "companyID" => $companyID, "seats" => $seats]);
-                    DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID]);
+                    DB::table("courseEnrolment")->insert(["courseID" => $courseID, "companyID" => $companyID, "userID" => $userID]);
 
                     return response()->json(["success" => true, "message" => "Enrollment Successful"]);
                 } else {
