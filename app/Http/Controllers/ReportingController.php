@@ -83,13 +83,64 @@ class ReportingController extends Controller
 
     public function candidateTable (Request $req){
         $token=$req->token;
-        $userEmail=$req->email;
-
-        if(DB::table('courseEnrolment')->join("users", "courseEnrolment.userID", "=", "users.userID")->where("users.userID","=", "courseEnrolment.usersID"))
-        $query=DB::table('course')->join("courseAssessmentLog","courseAssessmentLog.courseID", "=", "course.courseID")->select("courseAssessmentLog.score","courseAssessmentLog.status")->get();
-
+        $userID=$req->userID;
         
-        return response()->json(["success" => true, "message" => $query]);
+        
+        
 
+        $queryForCandidate=DB::table("courseAssessmentLog")->join("course","course.courseID","=","courseAssessmentLog.courseID")->where("courseAssessmentLog.userID","=",$userID)->selectRaw("courseName,max(score) as score,any_value(courseAssessmentLog.courseID) as courseID")->groupBy("courseName")->get();
+
+ 
+
+        foreach($queryForCandidate as $course){
+            // $courseID=$courseID->courseID;
+            // $companyID=$companyID->companyID;
+            
+
+            // var_dump($courseID);
+
+            $averageRange=DB::table("courseAssessmentLog")->join("users","users.userID","=","courseAssessmentLog.userID")->selectRaw("concat(min(score),'-',max(score)) as averageRange")->get();
+
+            $status=DB::table('courseAssessmentLog')->join("users","users.userID","=","courseAssessmentLog.userID")->select("status")->get();
+
+            $course->averageRange=$averageRange[0]->averageRange ?? $course->averageRange=null;
+            $course->status=$status[0]->status ?? $course->status=null;
+        }
+        
+
+        // $queryForCandidate=DB::table('courseEnrolment')->join("users", "courseEnrolment.userID", "=", "users.userID")->where("users.userID","=", "courseEnrolment.usersID")->get();
+        // if($queryForCandidate){
+
+        //     foreach ($queryForCandidate as $course) {
+        //         $courseID=$course->courseID;
+        //         $totalEnrolled =$course->enrolled;
+
+        //         $queryForCompleted = DB::table("course")->join("courseAssessmentLog", "course.courseID","=","courseAssessmentLog.courseID")->where("status", "=", "pass")->where("courseID", "=", $courseID)->groupBy("courseAssessmentLog.userID")->selectRaw("max(score) as complete")->get();
+            
+                
+
+        //         $complete = count($queryForCompleted);
+        //         $incomplete = $totalEnrolled - $complete;
+
+        //         $course->complete=$complete;
+        //         $course->incomplete=$incomplete;
+               
+        //     }
+
+            return response()->json(["success" => true, "message" => $queryForCandidate]);
+        }
+
+                     //sample
+            // $query=DB::table("course")->join("courseAssessmentLog", "course.courseID","=","courseAssessmentLog.courseID")->select("course.courseName","courseAssessmentLog.score","courseAssessmentLog.status")->get();
+
+
+            // $query=DB::table('course')->join("courseTrackerLog","courseTrackerLog.courseTrackerLogID", "=", "course.courseID")->select("course.courseName","courseTrackerLog.courseTrackerLogID","courseTrackerLog.status")->get();
+
+        // ->join("courseAssessmentLog","course.courseID","=","courseAssessmentLog.courseID")->where("course.courseID","=","courseAssessmentLog.courseID")->select("courseAssessmentLog.score")
+        
+            // return response()->json(["success" => true, "message" => $query]);
+        // }
+        // return response()->json(["success" => false, "message" => "Incorrect details"]);
     }
-}
+
+
