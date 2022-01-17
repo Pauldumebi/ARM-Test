@@ -41,7 +41,7 @@ Route::prefix("v1")->middleware("isAdmin")->group(function () {
     Route::put("/edit-user", [UserController::class, "editCompanyUser"]);
     Route::delete("/delete-user", [UserController::class, "deleteCompanyUser"]);
     Route::post("/companyusers", [UserController::class, "getCompanyUsers"]);
-    Route::post("/company-users-search", [UserController::class, "getCompanyUsersOthers"]);
+    Route::post("/company-users-search", [UserController::class, "companyUserSearch"]);
 });
 
 // Course Controller Endpoints
@@ -115,6 +115,7 @@ Route::prefix("v1")->middleware("isSiteAdmin")->group(function () {
 //Reporting Controller
 Route::prefix("v1")->middleware("isAdmin")->group(function () {
     Route::post("/all-courses", [ReportingController::class, "allCourses"]);
+    Route::post("/filters", [ReportingController::class, "filterParams"]);
     Route::post("/candidate-details", [ReportingController::class, "candidateDetails"]);
     Route::post("/candidate-table", [ReportingController::class, "candidateTable"]);
 });

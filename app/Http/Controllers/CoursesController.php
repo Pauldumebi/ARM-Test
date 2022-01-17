@@ -19,21 +19,6 @@ class CoursesController extends Controller
         Mail::to($email)->send(new \App\Mail\AssignedACourse($details));
     }
 
-    private function getSeats($companyID, $courseID)
-    {
-        $query = DB::table("courseSeat")->where("companyID", "=", $companyID)->where("courseID", "=", $courseID)->get();
-        if (count($query) > 0) {
-            $totalSeats = $query[0]->seats;
-        } else {
-            $totalSeats = 0;
-        }
-
-        $query = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("companyID", "=", $companyID)->where("courseID", "=", $courseID)->get();
-        $assignedSeats = count($query);
-
-        return ["Total" => $totalSeats, "Assigned" => $assignedSeats];
-    }
-
     private function isAdmin($token)
     {
         // Checks if token has admin privileges and return companyID of Admin
@@ -56,6 +41,20 @@ class CoursesController extends Controller
         }
     }
 
+    private function getSeats($companyID, $courseID)
+    {
+        $query = DB::table("courseSeat")->where("companyID", "=", $companyID)->where("courseID", "=", $courseID)->get();
+        if (count($query) > 0) {
+            $totalSeats = $query[0]->seats;
+        } else {
+            $totalSeats = 0;
+        }
+
+        $query = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("courseEnrolment.companyID", "=", $companyID)->where("courseID", "=", $courseID)->get();
+        $assignedSeats = count($query);
+
+        return ["Total" => $totalSeats, "Assigned" => $assignedSeats];
+    }
 
     public function getCourses()
     {
@@ -76,12 +75,51 @@ class CoursesController extends Controller
     }
     public function enrolToCourse(Request $req)
     {
-        $token = $req->token;
-        $usertoken = $req->usertoken;
+        $token = $req->userToken; //change this back token;
+        $usertoken = $req->token; //change this back userToken;
         $courseID = $req->courseID;
 
-        $response = $this->enrollment($token, $usertoken, $courseID);
-        return response()->json(["success" => $response["success"], "message" => $response["message"]], $response["status"]);
+        $checkToken = $this->isAdmin($token);
+        // Checks if the token belongs to a company Admin User
+        if ($checkToken["isAdmin"]) {
+            $checkUser =  $this->userExists($usertoken, $checkToken["companyID"]);
+            // Checks if user exists for that company
+            if ($checkUser["userExists"]) {
+
+                // Check if course exists
+                if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
+                    $userID = $checkUser["userID"];
+
+                    // Checks if user is already enrolled
+                    if (DB::table("courseEnrolment")->where("userID", "=", $userID)->where("courseID", "=", $courseID)->doesntExist()) {
+
+                        $companyID = $checkUser["companyID"];
+
+                        $seats = $this->getSeats($companyID, $courseID);
+                        // Check if there are available seats
+                        if ($seats["Assigned"] < $seats["Total"]) {
+                            $this->assignedACourse($checkUser["userEmail"], $checkUser["userFirstName"]);
+
+                            DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID]);
+
+                            return response()->json(["success" => true, "message" => "Enrollment successful"]);
+                        }
+                        return response()->json(["success" => false, "message" => "No more Course Seats!"], 400);
+                    } else {
+                        return response()->json(["success" => true, "message" => "Already Enrolled"]);
+                    }
+                } else {
+                    return response()->json(["success" => false, "message" => "Course does not exist"], 400);
+                }
+            } else {
+                return response()->json(["success" => false, "message" => "Users to be enrolled does not exist"], 400);
+            }
+        } else {
+            return response()->json(["success" => false, "message" => "User Not Admin"], 401);
+        }
+
+        // $response = $this->enrollment($token, $usertoken, $courseID);
+        // return response()->json(["success" => $response["success"], "message" => $response["message"]], $response["status"]);
     }
 
     public function unEnrolFromCourse(Request $req)
@@ -146,7 +184,7 @@ class CoursesController extends Controller
                 if (DB::table("courseEnrolment")->where("userID", "=", $userID)->where("courseID", "=", $courseID)->doesntExist()) {
 
                     DB::table("courseSeat")->insert(["courseID" => $courseID, "companyID" => $companyID, "seats" => $seats]);
-                    DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID]);
+                    DB::table("courseEnrolment")->insert(["courseID" => $courseID, "companyID" => $companyID, "userID" => $userID]);
 
                     return response()->json(["success" => true, "message" => "Enrollment Successful"]);
                 } else {
@@ -206,7 +244,7 @@ class CoursesController extends Controller
         }
     }
 
-    public function getCourseModuleTopicsForLoggedInUsers(Request $req)
+    public function getCourseModulesForLoggedInUsers(Request $req)
     {
         $courseID = $req->courseID;
         $token = $req->token;
@@ -352,47 +390,32 @@ class CoursesController extends Controller
         }
     }
 
-    public function recommendCourses(Request $req){
-        $token = $req->token;
+    // public function recommendCourses(Request $req){
+    //     $token = $req->token;
         
-        $checkToken = $this->isAdmin($token);
-        // Checks if the token belongs to an company Admin User
-        if ($checkToken["isAdmin"]) {
+    //     $checkToken = $this->isAdmin($token);
+    //     // Checks if the token belongs to an company Admin User
+    //     if ($checkToken["isAdmin"]) {
 
-            $group = DB::table("groupRole")->get();
+    //         $groups = DB::table("groupRole")->get();
 
-            if (count($group) > 0) {
-                $i = 0;
-                foreach ($groups as $group) {
-                    if (DB::table("course")->join("courseCategory", "courseID", "=", "course.courseID")->where("users.token", "=", $token)->where("course.courseID", "=", $course->courseID)->exists()) {
-                        $course->enrolled = true;
-                    } else {
-                        $course->enrolled = false;
-                    }
-                }
-                return response()->json(["success" => true, "courses" => $courses]);
-            } else {
-                return response()->json(["success" => true, "message" => "No Courses Found"]);
-            }
-        } else {
-            return response()->json(["success" => false, "message" => "Users Not Admin"]);
-        }
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    //         if (count($groups) > 0) {
+    //             $i = 0;
+    //             foreach ($groups as $group) {
+    //                 if (DB::table("course")->join("courseCategory", "courseID", "=", "course.courseID")->where("users.token", "=", $token)->where("course.courseID", "=", $course->courseID)->exists()) {
+    //                     $course->enrolled = true;
+    //                 } else {
+    //                     $course->enrolled = false;
+    //                 }
+    //             }
+    //             return response()->json(["success" => true, "courses" => $courses]);
+    //         } else {
+    //             return response()->json(["success" => true, "message" => "No Courses Found"]);
+    //         }
+    //     } else {
+    //         return response()->json(["success" => false, "message" => "Users Not Admin"]);
+    //     }
+    // }
         // $usertoken = $req->usertoken;
         // $courseID = $req->courseID;
 

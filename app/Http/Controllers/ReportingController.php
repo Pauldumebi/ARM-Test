@@ -7,6 +7,19 @@ use Illuminate\Support\Facades\DB;
 
 class ReportingController extends Controller
 {
+    public function filterParams (Request $req) {
+        $token = $req->token;
+        $queryForCompanyId = DB::table("users")->where("token", "=", $token)->select("companyID")->get();
+        $companyID = $queryForCompanyId[0]->companyID;
+        $location = DB::table("users")->where("companyID", "=", $companyID)->selectRaw("distinct(location)")->get();
+        $queryForGrade = DB::table("users")->where("companyID", "=", $companyID)->selectRaw("distinct(userGrade)")->get();
+        $queryForRoleName = DB::table("groupRole")->selectRaw("roleName")->get();
+        $queryForGroup = DB::table("group")->join("users", "group.companyID", "=", "users.companyID")->where("group.companyID", "=", $companyID)->selectRaw("distinct(groupName)")->get();
+        $gender = ["M", "F"];
+
+        return response()->json(["success" => true, "location" => $location, "grade" => $queryForGrade, "roleName" => $queryForRoleName, "group" => $queryForGroup, "gender" => $gender]);
+    }
+
     public function allCourses (Request $req) {
         $token = $req->token;
         $userGender = $req->userGender;
@@ -54,15 +67,6 @@ class ReportingController extends Controller
             return response()->json(["success" => true, "message" => $queryForCourses]);
         }
     }
-    
-    // public function courseTable(Request $req){
-    //     $roleName=$req->roleName;
-    //     $course=$req->course;
-
-    //     query = DB::table("course")->join("role", "users.userRoleID", "=", "role.RoleID")->where("token", "=", $token)->select(["companyID", "roleName"])->get();
-    //     if ($query[0]->roleName === "admin") {
-
-    // }
 
     public function candidateDetails (Request $req ){
         $token=$req->token;
@@ -84,63 +88,35 @@ class ReportingController extends Controller
     public function candidateTable (Request $req){
         $token=$req->token;
         $userID=$req->userID;
-        
-        
-        
+        // $companyID=$companyID->companyID;
 
         $queryForCandidate=DB::table("courseAssessmentLog")->join("course","course.courseID","=","courseAssessmentLog.courseID")->where("courseAssessmentLog.userID","=",$userID)->selectRaw("courseName,max(score) as score,any_value(courseAssessmentLog.courseID) as courseID")->groupBy("courseName")->get();
 
- 
-
         foreach($queryForCandidate as $course){
-            // $courseID=$courseID->courseID;
-            // $companyID=$companyID->companyID;
-            
-
-            // var_dump($courseID);
+           
+            $courseID=$course->courseID;
+           
+           
+ 
 
             $averageRange=DB::table("courseAssessmentLog")->join("users","users.userID","=","courseAssessmentLog.userID")->selectRaw("concat(min(score),'-',max(score)) as averageRange")->get();
 
-            $status=DB::table('courseAssessmentLog')->join("users","users.userID","=","courseAssessmentLog.userID")->select("status")->get();
+            $status=DB::table("courseAssessmentLog")->join("users","users.userID","=","courseAssessmentLog.userID")->select("status")->get();
+
+            $started=DB::table("courseTrackerLog")->where("courseTrackerLog.userID","=",$userID)->select("distinct(moduleID) as started")->get();
+            $moduleCompleted=count($started);
 
             $course->averageRange=$averageRange[0]->averageRange ?? $course->averageRange=null;
+            
             $course->status=$status[0]->status ?? $course->status=null;
-        }
+            $course->started=true?? $course->started=null;
+            $course->started=true 
+
+        
         
 
-        // $queryForCandidate=DB::table('courseEnrolment')->join("users", "courseEnrolment.userID", "=", "users.userID")->where("users.userID","=", "courseEnrolment.usersID")->get();
-        // if($queryForCandidate){
 
-        //     foreach ($queryForCandidate as $course) {
-        //         $courseID=$course->courseID;
-        //         $totalEnrolled =$course->enrolled;
-
-        //         $queryForCompleted = DB::table("course")->join("courseAssessmentLog", "course.courseID","=","courseAssessmentLog.courseID")->where("status", "=", "pass")->where("courseID", "=", $courseID)->groupBy("courseAssessmentLog.userID")->selectRaw("max(score) as complete")->get();
-            
-                
-
-        //         $complete = count($queryForCompleted);
-        //         $incomplete = $totalEnrolled - $complete;
-
-        //         $course->complete=$complete;
-        //         $course->incomplete=$incomplete;
-               
-        //     }
-
+        }
             return response()->json(["success" => true, "message" => $queryForCandidate]);
         }
-
-                     //sample
-            // $query=DB::table("course")->join("courseAssessmentLog", "course.courseID","=","courseAssessmentLog.courseID")->select("course.courseName","courseAssessmentLog.score","courseAssessmentLog.status")->get();
-
-
-            // $query=DB::table('course')->join("courseTrackerLog","courseTrackerLog.courseTrackerLogID", "=", "course.courseID")->select("course.courseName","courseTrackerLog.courseTrackerLogID","courseTrackerLog.status")->get();
-
-        // ->join("courseAssessmentLog","course.courseID","=","courseAssessmentLog.courseID")->where("course.courseID","=","courseAssessmentLog.courseID")->select("courseAssessmentLog.score")
-        
-            // return response()->json(["success" => true, "message" => $query]);
-        // }
-        // return response()->json(["success" => false, "message" => "Incorrect details"]);
     }
-
-
