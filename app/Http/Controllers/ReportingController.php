@@ -91,10 +91,29 @@ class ReportingController extends Controller
 
         $queryForCandidate=DB::table("courseAssessmentLog")->join("course","course.courseID","=","courseAssessmentLog.courseID")->where("courseAssessmentLog.userID","=",$userID)->selectRaw("courseName,max(score) as score,any_value(courseAssessmentLog.courseID) as courseID")->groupBy("courseName")->get();
 
-        foreach($queryForCandidate as $courseID){
-            $courseID=$courseID->courseID;
-            // var_dump($courseID);
-            $query=DB::table("courseAssessmentLog")->join("users","users.userID","=","courseAssessmentLog.userID")->where("courseID", "=", $courseID)->selectRaw("concat(min(score),'-',max(score)) as averageRange")->get();
+        foreach($queryForCandidate as $course){
+           
+            $courseID=$course->courseID;
+           
+           
+ 
+
+            $averageRange=DB::table("courseAssessmentLog")->join("users","users.userID","=","courseAssessmentLog.userID")->selectRaw("concat(min(score),'-',max(score)) as averageRange")->get();
+
+            $status=DB::table("courseAssessmentLog")->join("users","users.userID","=","courseAssessmentLog.userID")->select("status")->get();
+
+            $started=DB::table("courseTrackerLog")->where("courseTrackerLog.userID","=",$userID)->select("distinct(moduleID) as started")->get();
+            $moduleCompleted=count($started);
+
+            $course->averageRange=$averageRange[0]->averageRange ?? $course->averageRange=null;
+            
+            $course->status=$status[0]->status ?? $course->status=null;
+            $course->started=true?? $course->started=null;
+            $course->started=true 
+
+        
+        
+
 
         }
             return response()->json(["success" => true, "message" => $queryForCandidate]);
