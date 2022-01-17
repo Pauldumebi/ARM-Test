@@ -57,7 +57,6 @@ class ReportingController extends Controller
 
                 $complete = count($queryForCompleted);
                 $incomplete = $totalEnrolled - $complete;
-
                 $course->complete=$complete;
                 $course->incomplete=$incomplete;
                 $course->averageSum=$averageSum[0]->average ?: $course->averageSum=null;
