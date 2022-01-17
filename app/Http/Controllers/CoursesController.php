@@ -221,11 +221,13 @@ class CoursesController extends Controller
 
             $row->modules_completed=$query2[0]->modules_completed;
         }
-
         if (count($query) > 0) {
             return response()->json(["success" => true, "enrolledCourses" => $query]);
         } else {
-            return response()->json(["success" => true, "enrolledCourses" => [], "message" => "No Enrolled Courses"]);
+            $roleName = DB::table("users")->join("groupRole", "users.groupRoleId", "=", "groupRole.groupRoleId")->where("token", "=", $token)->get();
+            $role = $roleName[0]->roleName;
+            $enrolledCourses = DB::table("course")->where("courseCategory", "=", $role)->limit(4)->get();
+            return response()->json(["success" => true, "message" => "No Enrolled Courses", "recommendedCourses" => $enrolledCourses, ]);
         }
     }
   
@@ -389,51 +391,4 @@ class CoursesController extends Controller
             return response()->json(["success" => false, "message" => "User not Admin"], 401);
         }
     }
-
-    // public function recommendCourses(Request $req){
-    //     $token = $req->token;
-        
-    //     $checkToken = $this->isAdmin($token);
-    //     // Checks if the token belongs to an company Admin User
-    //     if ($checkToken["isAdmin"]) {
-
-    //         $groups = DB::table("groupRole")->get();
-
-    //         if (count($groups) > 0) {
-    //             $i = 0;
-    //             foreach ($groups as $group) {
-    //                 if (DB::table("course")->join("courseCategory", "courseID", "=", "course.courseID")->where("users.token", "=", $token)->where("course.courseID", "=", $course->courseID)->exists()) {
-    //                     $course->enrolled = true;
-    //                 } else {
-    //                     $course->enrolled = false;
-    //                 }
-    //             }
-    //             return response()->json(["success" => true, "courses" => $courses]);
-    //         } else {
-    //             return response()->json(["success" => true, "message" => "No Courses Found"]);
-    //         }
-    //     } else {
-    //         return response()->json(["success" => false, "message" => "Users Not Admin"]);
-    //     }
-    // }
-        // $usertoken = $req->usertoken;
-        // $courseID = $req->courseID;
-
-        // $response = $this->enrollment($token, $usertoken, $courseID);
-    //     $checkToken = $this->isAdmin($token);
-    //     // Checks if the token belongs to a company Admin User
-    //     if ($checkToken["isAdmin"]) {
-    //         $checkUser =  $this->userExists($usertoken, $checkToken["companyID"]);
-        
-    //         $query=DB::table("groupRole")->where("groupRoleId", "=", $groupRoleId)->get();
-
-    //         if(count($query)> 0){
-    //             $course=DB::table('course')->where('courseID',"=",$courseID)->select('courseID','courseName','courseDescription','image')->limit(3)->get();
-    //             return response()->json([ "success" => true, "message"=> "Some Recommended courses you might like"]);
-
-    //         }
-    //         else{
-    //             return response()->json(["success"=>false, "message"=> "User not an admin and can't recommend courses "]);
-    //         }
-    // }
 }

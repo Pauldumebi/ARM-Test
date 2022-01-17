@@ -49,12 +49,21 @@ class ReportingController extends Controller
                 $courseID=$course->courseID;
                 $totalEnrolled =$course->enrolled;
 
-                $queryForCompleted = DB::table("courseAssessmentLog")->join("users", "courseAssessmentLog.userID", "=", "users.userID")->where("status", "=", "pass")->where("courseID", "=", $courseID)->where("companyID", "=", $companyID)->groupBy("courseAssessmentLog.userID")->selectRaw("max(score) as complete")->get();
+                if ($userGender || $location || $userGrade || $roleName) {
+                    $queryForCompleted = DB::table("courseAssessmentLog")->join("users", "courseAssessmentLog.userID", "=", "users.userID")->where("status", "=", "pass")->where("courseID", "=", $courseID)->where("companyID", "=", $companyID)->where("groupRoleID", "like", "%". $groupRoleID."%")->where("userGrade", "like", "%". $userGrade."%")->where("location", "like", "%". $location."%")->where("userGender", "like", "%". $userGender."%")->groupBy("courseAssessmentLog.userID")->selectRaw("courseAssessmentLog.userID, max(score) as score")->get();
             
-                $averageSum = DB::table("courseAssessmentLog")->join("users", "courseAssessmentLog.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("companyID", "=", $companyID)->selectRaw("round(avg(score), 0) as average")->get();
+                    $averageSum = DB::table("courseAssessmentLog")->join("users", "courseAssessmentLog.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("companyID", "=", $companyID)->where("groupRoleID", "like", "%". $groupRoleID."%")->where("userGrade", "like", "%". $userGrade."%")->where("location", "like", "%". $location."%")->where("userGender", "like", "%". $userGender."%")->selectRaw("round(avg(score), 0) as average")->get();
 
-                $averageRange = DB::table("courseAssessmentLog")->join("users", "courseAssessmentLog.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("companyID", "=", $companyID)->selectRaw("concat( MIN(score) , '-', MAX(score)) as average_range")->get();
+                    $averageRange = DB::table("courseAssessmentLog")->join("users", "courseAssessmentLog.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("companyID", "=", $companyID)->where("groupRoleID", "like", "%". $groupRoleID."%")->where("userGrade", "like", "%". $userGrade."%")->where("location", "like", "%". $location."%")->where("userGender", "like", "%". $userGender."%")->selectRaw("concat( MIN(score) , '-', MAX(score)) as average_range")->get();
 
+                } else {
+                    $queryForCompleted = DB::table("courseAssessmentLog")->join("users", "courseAssessmentLog.userID", "=", "users.userID")->where("status", "=", "pass")->where("courseID", "=", $courseID)->where("companyID", "=", $companyID)->groupBy("courseAssessmentLog.userID")->selectRaw("max(score) as complete")->get();
+            
+                    $averageSum = DB::table("courseAssessmentLog")->join("users", "courseAssessmentLog.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("companyID", "=", $companyID)->selectRaw("round(avg(score), 0) as average")->get();
+
+                    $averageRange = DB::table("courseAssessmentLog")->join("users", "courseAssessmentLog.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("companyID", "=", $companyID)->selectRaw("concat( MIN(score) , '-', MAX(score)) as average_range")->get();
+                }
+                
                 $complete = count($queryForCompleted);
                 $incomplete = $totalEnrolled - $complete;
                 $course->complete=$complete;
@@ -109,7 +118,7 @@ class ReportingController extends Controller
             
             $course->status=$status[0]->status ?? $course->status=null;
             $course->started=true?? $course->started=null;
-            $course->started=true 
+            // $course->started=true 
 
         
         

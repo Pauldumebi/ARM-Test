@@ -52,7 +52,7 @@ class GroupController extends Controller
             $totalSeats = 0;
         }
 
-        $query = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("companyID", "=", $companyID)->where("courseID", "=", $courseID)->get();
+        $query = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("users.companyID", "=", $companyID)->where("courseID", "=", $courseID)->get();
         $assignedSeats = count($query);
 
         // Checks if there are available seats for a particular course for a company
@@ -160,7 +160,6 @@ class GroupController extends Controller
         $token = $req->token;
         $courseid = $req->courseID;
         $groupid = $req->groupid;
-
 
         $checkToken = $this->isAdmin($token);
         // Checks if the token belongs to an company Admin User
@@ -283,7 +282,7 @@ class GroupController extends Controller
                                 $user = DB::table("users")->where("userID", "=", $userExists["userID"])->get();
                                 // Loops through the courses attached to the Group and assigns them to the user
                                 foreach ($courses as $course) {
-                                    DB::table("courseEnrolment")->updateOrInsert(["userID" => $userExists["userID"], "courseID" => $course->courseID], ["groupID" => $groupid]);
+                                    DB::table("courseEnrolment")->updateOrInsert(["userID" => $userExists["userID"], "companyID" => $checkToken["companyID"], "courseID" => $course->courseID], ["groupID" => $groupid]);
                                     $this->assignedACourse($user[0]->userFirstName, $user[0]->userEmail);
                                 }
                                 $message = $userExists["name"].' '."added Successfully and enrolled to course";
