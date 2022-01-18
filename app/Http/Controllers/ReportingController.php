@@ -96,8 +96,6 @@ class ReportingController extends Controller
            
             $courseID=$course->courseID;
            
-           
- 
 
             $averageRange=DB::table("courseAssessmentLog")->join("users","users.userID","=","courseAssessmentLog.userID")->selectRaw("concat(min(score),'-',max(score)) as averageRange")->get();
 
@@ -105,12 +103,13 @@ class ReportingController extends Controller
 
             $started=DB::table("courseTrackerLog")->where("courseTrackerLog.userID","=",$userID)->select("distinct(moduleID) as started")->get();
             $moduleCompleted=count($started);
+        //    $module= DB::table("module")->where("courseID","=")
 
             $course->averageRange=$averageRange[0]->averageRange ?? $course->averageRange=null;
             
             $course->status=$status[0]->status ?? $course->status=null;
             $course->started=true?? $course->started=null;
-            $course->started=true 
+            // $course->started=true 
 
         
         
