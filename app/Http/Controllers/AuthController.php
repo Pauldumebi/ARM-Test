@@ -47,8 +47,12 @@ class AuthController extends Controller
         $email_token = $this->RandomCodeGenerator(80);
 
         if (DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->where("users.userEmail", "=", $email)->orWhere("company.companyName", "=", $companyName, "or")->orWhere("company.emailSuffix", "=", $companyEmailSuffix)->doesntExist()) {
+            
+            $getRoleId = DB::table("users")->join("groupRole", "users.groupRoleId", "=", "groupRole.groupRoleId")->where("roleName", "=", $adminRole)->get();
+            $roleId = $getRoleId[0]->groupRoleId;
+
             $id = DB::table("users")->insertGetId(
-                ["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userPassword" => $hash, "userRoleID" => 1, "token" => $token, "email_token" => $email_token, "verified_status" => "unverified"],
+                ["userFirstName" => $firstname, "userLastName" => $lastname, "userEmail" => $email, "userPhone" => $tel, "userPassword" => $hash, "userRoleID" => 1, "groupRoleId" => $roleId, "token" => $token, "email_token" => $email_token, "verified_status" => "unverified"],
             );
 
             $companyID = DB::table("company")->insertGetId([
@@ -60,6 +64,13 @@ class AuthController extends Controller
             ]);
 
             DB::table("users")->where("userID", "=", $id)->update(["companyID" => $companyID]);
+
+            $defaultGroups = DB::table("groupRole")->get();
+
+            foreach($defaultGroups as $group) {
+                $roleName=$group->roleName;
+                DB::table("group")->insert(["companyID" => $companyID, "groupName" => $roleName]);
+            } 
 
             $query = DB::table("users")->where("userEmail", "=", $email)->select(["token"])->get();
             $userData = ["token" => $query[0]->token, "role" => "admin"];

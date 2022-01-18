@@ -159,11 +159,15 @@ class UserController extends Controller
         $query = DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 1)->select(["companyID"])->get();
         $companyID = $query[0]->companyID;
 
-        $users = DB::table("users")->where("companyID", "=", $companyID)->where("userRoleID", "=", 2)->where(function ($query) use ($searchParams) {
+        $users = DB::table("users")
+        // ->join("groupRole", "users.groupRoleId", "=", "users.userRoleID")
+        ->where("companyID", "=", $companyID)->where(function ($query) use ($searchParams) {
             $query->where("employeeID","like", "%". $searchParams."%" )
                   ->orWhere("userFirstName","like", "%".$searchParams."%" )
                   ->orWhere("userLastname", "like", "%". $searchParams."%" );
-        })->select("userID","userFirstName", "userLastname", "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->skip($offset)->take($page_size)->get();
+        })->select("userID","userFirstName", "userLastname", 
+        // "roleName as userRole",
+         "userEmail", "userGender", "userGrade", "employeeID", "location", "token AS usertoken")->skip($offset)->take($page_size)->get();
         $total = count($users);
         if (count($users) > 0) {
             return response()->json(["success" => true, "users" => $users, "total"=> $total]);
