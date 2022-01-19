@@ -146,6 +146,14 @@ class GroupController extends Controller
             $groups = DB::table("group")->leftJoin("groupRole", "groupRole.groupRoleId", "=", "group.groupRoleId")->where("companyID", "=", $checkToken["companyID"])->select(["groupID", "groupName", "roleName", "group.created_at"])->get();
             // Checks if the a company has ay groups at all
             if (count($groups) > 0) {
+                foreach ($groups as $group) {
+                    $groupID = $group->groupID;
+                    $totalCoursesInGroup = DB::table("groupEnrolment")->where("groupID", "=", $groupID)->selectRaw("distinct(courseID), groupID, created_at")->count();
+                    $group->totalCoursesInGroup = $totalCoursesInGroup;
+
+                    $totalUsersInGroup = DB::table("userGroup")->where("groupID", "=", $groupID)->selectRaw("distinct(userID),  userGroupID, groupID, created_at")->count();
+                    $group->totalUsersInGroup = $totalUsersInGroup;
+                }
                 return response()->json(["success" => true, "groups" => $groups]);
             } else {
                 return response()->json(["success" => true, "groups" => [], "message" => "No groups for company"]);

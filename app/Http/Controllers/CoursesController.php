@@ -211,6 +211,10 @@ class CoursesController extends Controller
         ->groupBy("module.courseID")
         ->get();
 
+        $getFirstLogin = DB::table("login_logs")->join("users", "email","=", "userEmail")->where("token", "=", $token)->where("status", "=", 200)->count();
+
+        $getFirstLogin === 1 ? $firstLogin = true : $firstLogin = false;
+   
         foreach ($query as $row) {
             $courseID = $row->courseID;
             $userID = $row->userID;
@@ -222,12 +226,15 @@ class CoursesController extends Controller
             $row->modules_completed=$query2[0]->modules_completed;
         }
         if (count($query) > 0) {
-            return response()->json(["success" => true, "enrolledCourses" => $query]);
+            $roleName = DB::table("users")->join("groupRole", "users.groupRoleId", "=", "groupRole.groupRoleId")->where("token", "=", $token)->get();
+            $role = $roleName[0]->roleName;
+            $recommendedCourses = DB::table("course")->where("courseCategory", "=", $role)->limit(4)->get();
+            return response()->json(["success" => true, "firstLogin"=> $firstLogin, "enrolledCourses" => $query, "recommendedCourses" => $recommendedCourses]);
         } else {
             $roleName = DB::table("users")->join("groupRole", "users.groupRoleId", "=", "groupRole.groupRoleId")->where("token", "=", $token)->get();
             $role = $roleName[0]->roleName;
             $enrolledCourses = DB::table("course")->where("courseCategory", "=", $role)->limit(4)->get();
-            return response()->json(["success" => true, "message" => "No Enrolled Courses", "recommendedCourses" => $enrolledCourses, ]);
+            return response()->json(["success" => true, "firstLogin"=> $firstLogin, "message" => "No Enrolled Courses", "recommendedCourses" => $enrolledCourses, ]);
         }
     }
   
