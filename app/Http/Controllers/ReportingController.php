@@ -100,19 +100,18 @@ class ReportingController extends Controller
         if (DB::table("users")->where("userID","=",$userID)->exists()) {
             //  var_dump($userID);
 
-             $query = DB::table("users")->join("role", "users.userRoleID", "=", "role.RoleID")->join("courseEnrolment","courseEnrolment.userID","=","users.userID")->where("users.userID", "=", $userID)->selectRaw("count(distinct(courseID)) as totalCourses,users.userID,users.employeeID, users.userFirstName, users.userEmail,role.roleName,users.userGrade,users.location,users.userGender")->groupby("users.userID")->get();
-
-            // var_dump($query);
-           
+             $query = DB::table("users")->join("role", "users.userRoleID", "=", "role.RoleID")->join("courseEnrolment","courseEnrolment.userID","=","users.userID")->where("users.userID", "=", $userID)->selectRaw("count(distinct(courseID)) as totalCourses,users.userID,users.employeeID, users.userFirstName, users.userEmail,role.roleName,users.userGrade,users.location,users.userGender")->groupBy("users.userID")->get();
        
             $queryForCandidate=DB::table("courseAssessmentLog")->join("course","course.courseID","=","courseAssessmentLog.courseID")->where("courseAssessmentLog.userID","=",$userID)->selectRaw("courseName,max(score) as score,any_value(courseAssessmentLog.courseID) as courseID")->groupBy("courseName")->get();
 
             foreach($queryForCandidate as $course){
             
                 $courseID=$course->courseID;
+
                 $averageRange=DB::table("courseAssessmentLog")->join("users","users.userID","=","courseAssessmentLog.userID")->selectRaw("concat(min(score),'-',max(score)) as averageRange")->get();
+
                 $status=DB::table("courseAssessmentLog")->join("users","users.userID","=","courseAssessmentLog.userID")->select("status")->get();
-                
+
                 $started=DB::table("courseTrackerLog")
                 ->join("module","courseTrackerLog.moduleID","=","module.moduleID")
                 ->join("course","course.courseID","=","module.courseID")
@@ -120,17 +119,15 @@ class ReportingController extends Controller
                 ->where("course.courseID","=",$courseID)->selectRaw("distinct(courseTrackerLog.moduleID) as started")->get();
                 
                 $moduleCompleted=count($started);
+
                 $getModuleCount=DB::table('module')->join("course","course.courseID","=","module.courseID")->where("course.courseID","=",$courseID)->select("moduleID","moduleName","course.courseID")->get();
                 $moduleCount=count($getModuleCount);
+
                 $moduleProgress=$moduleCompleted."/".$moduleCount;
                 $course->averageRange=$averageRange[0]->averageRange ?? $course->averageRange=null;
                 $course->status=$status[0]->status ?? $course->status=null;
                 $course->started=true?? $course->started=null;
                 $course->moduleProgress=$moduleProgress;
-                // $course->progressTracker=$progressTracker[0]->progre
-                
-                
-
                 //Candidate score summary
 
                 // $scoreSummary=DB::select("SELECT TRIM(max(score))+0 as score_summary from courseAssessmentLog
@@ -138,9 +135,7 @@ class ReportingController extends Controller
                 // UNION  SELECT avg(score)  FROM courseAssessmentLog where courseID=$courseID");
 
                 $candidateScore=DB::table('courseAssessmentLog')->selectRaw("max(score) as candidateScore")->where("courseID","=",$courseID)->where("userID","=",$userID)->get();
-                
                 $averageScore=DB::table("courseAssessmentLog")->selectRaw("ROUND(avg(score)) as nationalAverage")->where("courseID","=",$courseID)->get();
-                
                 $course->candidateSummary=[$candidateScore[0],$averageScore[0]];
             }
             return response()->json(["success" => true, "candidateDetails" =>$query, "candidateSummary" => $queryForCandidate]);
@@ -163,16 +158,5 @@ class ReportingController extends Controller
             return response()->json(["success" => false, "search"=> []]);
         }
        
-    }
-    public function courseView(Request $req){
-        $token=$req->token;
-        $userID=$req->userID;
-        if (DB::table("users")->where("userID","=",$userID)->exists()) {
-            $courseCandidates=DB::table('module')->selectRaw("count(distinct(moduleID)) as module")
-            ->get();
-
-            return response()->json(["success" => true, "courseDetails"=>$courseCandidates]);
-
-        }
     }
 }
