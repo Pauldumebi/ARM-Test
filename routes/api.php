@@ -119,4 +119,5 @@ Route::prefix("v1")->middleware("isAdmin")->group(function () {
     // Route::post("/candidate-details", [ReportingController::class, "candidateTable"]);
     Route::post("/candidate-table", [ReportingController::class, "candidateTable"]);
     Route::get("/search-candidate", [ReportingController::class, "searchCandidate"]);
+    Route::post("/course-view",[ReportingController::class, "courseView"]);
 });

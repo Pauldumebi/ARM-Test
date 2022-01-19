@@ -150,7 +150,7 @@ class ReportingController extends Controller
                 
                 $averageScore=DB::table("courseAssessmentLog")->selectRaw("ROUND(avg(score)) as nationalAverage")->where("courseID","=",$courseID)->get();
                 
-                $course->candidateSummary=[$candidateScore[0],$averageScore[0]];
+                $course->candidateSummary=[$candidateScore,$averageScore];
 
 
 
@@ -171,7 +171,9 @@ class ReportingController extends Controller
             $userFirstName=$searchRequest[0];
             $userLastName=$searchRequest[1];
 
-            $searchQuery = DB::table("users")->where("userFirstName", "like", "%". $userFirstName."%")->where("userLastName", "like", "%". $userLastName."%")->selectRaw("concat(userFirstName,' ' ,userLastName) as usersName, userID, token")->get();
+            $searchQuery = DB::table("users")->where("userFirstName", "like", "%". $userFirstName."%")->where("userLastName", "like", "%". $userLastName."%")->selectRaw("concat(userFirstName,' ' ,userLastName) as usersName, userID")->get();
+
+         
 
           return response()->json(["success" => true, "search"=> $searchQuery]);
         }
@@ -179,5 +181,92 @@ class ReportingController extends Controller
             return response()->json(["success" => false, "search"=> []]);
         }
        
+    }
+    public function courseView(Request $req){
+        $token=$req->token;
+        $courseID=$req->courseID;
+        if (DB::table("course")->where("courseID","=",$courseID)->exists()) {
+
+            $courseCandidates=DB::table('module')->selectRaw("count(distinct(moduleID)) as module")
+            ->get();
+            
+
+            foreach($courseCandidates as $course){
+                //  $courseID=$course->courseID;
+
+                 $enrolled=DB::table("courseEnrolment")->selectRaw("count(distinct(courseEnrolmentID)) as enrolled")->get();
+
+                 $completed=DB::table("courseTrackerLog")->selectRaw("count(status) as completed")->where("status","=","complete")->get();
+
+                 $not_completed=DB::table("courseTrackerLog")->selectRaw("count(status) as not_completed")->where("status","=","not complete")->get();
+
+                 $passed=DB::table("courseAssessmentLog")->selectRaw("count(status) as passed")->where("status","=","pass")->get();
+
+                 $failed=DB::table("courseAssessmentLog")->selectRaw("count(status) as failed")->where("status","=","fail")->get();
+
+                 $nationalAverage=DB::table("courseAssessmentLog")->
+                 selectRaw("ROUND(avg(score)) as nationalAverage")->get();
+
+                $course->enrolled=$enrolled[0]->enrolled ?? $course->enrolled=null;
+                $course->completed=$completed[0]->completed ?? $course->completed=null;
+                $course->not_completed=$not_completed[0]->not_completed ?? $course->not_completed=null;
+                $course->passed=$passed[0]->passed;
+                $course->failed=$failed[0]->failed;
+                $course->nationalAverage=$nationalAverage[0]->nationalAverage;
+
+                // Course Engagement Chart
+                $moduleCompletion=DB::table("module")->join("courseTrackerLog","courseTrackerLog.moduleID", "=", "module.moduleID")->selectRaw("distinct(module.moduleID) as Modules, courseTrackerLog.status as Module_Completion")->where("status","=","complete")->get();
+                
+                $courseCompleted=DB::table("courseTrackerLog")->selectRaw("count(status) as completed")->where("status","=","complete")->get();
+
+                $courseNotCompleted=DB::table("courseTrackerLog")->selectRaw("count(status) as not_completed")->where("status","=","not complete")->get();
+
+                // $total=$courseCompleted + $courseNotCompleted;
+
+                $course->courseEngagementChart=[$moduleCompletion[0],$courseCompleted[0],$courseNotCompleted[0]];
+
+                
+            }
+
+             //Course Table
+             $courseTable= DB::table("users")->join("courseTrackerLog","courseTrackerLog.userID","=","users.userID")->join("module","module.moduleID","=", "courseTrackerLog.moduleID")->where("status","=","complete")->where("courseID","=",$courseID)->selectRaw("users.employeeID,concat(userFirstName,' ' ,userLastName) as Name,users.userID,module.moduleName,module.courseID,module.moduleID,courseTrackerLog.status")->get();
+
+        
+
+            foreach($courseTable as $course){
+
+                $scoreRange=DB::table("courseAssessmentLog")->join("users","users.userID","=","courseAssessmentLog.userID")->selectRaw("concat(min(score),'-',max(score)) as scoreRange")->where("courseID","=",$courseID)->get();
+
+                $started=DB::table("courseTrackerLog")
+                ->join("module","courseTrackerLog.moduleID","=","module.moduleID")
+                ->join("course","course.courseID","=","module.courseID")
+                // ->where("courseTrackerLog.userID","=",$userID)
+                ->selectRaw("distinct(courseTrackerLog.moduleID) as started")->get();
+
+                $status=DB::table("courseAssessmentLog")->join("users","users.userID","=","courseAssessmentLog.userID")->select("status")->get();
+                
+                $moduleCompleted=count($started);
+
+                $getModuleCount=DB::table('module')->join("course","course.courseID","=","module.courseID")->select("moduleID","moduleName","course.courseID")->get();
+                $moduleCount=count($getModuleCount);
+
+                $moduleProgress=$moduleCompleted."/".$moduleCount;
+                $course->moduleProgress=$moduleProgress;
+                $course->scoreRange=$scoreRange[0]->scoreRange ?? $course->scoreRange=null;
+                $course->status=$status[0]->status ?? $course->status=null;
+
+                
+
+
+
+            }
+
+
+            return response()->json(["success" => true, "courseDetails"=>$courseCandidates, "courseEngagementChart" =>$courseCandidates,"courseTableDetails"=>$courseTable]);
+
+        }
+        else{
+            return response()->json(["success" => false, "message"=>"Incorrect response"]);
+        }
     }
 }
