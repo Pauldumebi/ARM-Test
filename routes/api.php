@@ -116,6 +116,7 @@ Route::prefix("v1")->middleware("isSiteAdmin")->group(function () {
 Route::prefix("v1")->middleware("isAdmin")->group(function () {
     Route::post("/all-courses", [ReportingController::class, "allCourses"]);
     Route::post("/filters", [ReportingController::class, "filterParams"]);
-    Route::post("/candidate-details", [ReportingController::class, "candidateDetails"]);
+    // Route::post("/candidate-details", [ReportingController::class, "candidateTable"]);
     Route::post("/candidate-table", [ReportingController::class, "candidateTable"]);
+    Route::get("/search-candidate", [ReportingController::class, "searchCandidate"]);
 });
