@@ -94,13 +94,14 @@ class ReportingController extends Controller
     // }
 
     public function candidateTable (Request $req){
+
         $token=$req->token;
         $userID=$req->userID;
        
         if (DB::table("users")->where("userID","=",$userID)->exists()) {
             //  var_dump($userID);
 
-             $query = DB::table("users")->join("role", "users.userRoleID", "=", "role.RoleID")->join("courseEnrolment","courseEnrolment.userID","=","users.userID")->where("users.userID", "=", $userID)->selectRaw("count(distinct(courseID)) as totalCourses,users.userID,users.employeeID, users.userFirstName, users.userEmail,role.roleName,users.userGrade,users.location,users.userGender")->groupby("users.userID")->get();
+             $query = DB::table("users")->join("role", "users.userRoleID", "=", "role.RoleID")->join("courseEnrolment","courseEnrolment.userID","=","users.userID")->where("users.userID", "=", $userID)->selectRaw("count(distinct(courseID)) as totalCourses,users.userID,users.employeeID, concat(userFirstName,' ' ,userLastName) as usersName, users.userEmail,role.roleName,users.userGrade,users.location,users.userGender")->groupBy("users.userID")->get();
 
             // var_dump($query);
            
@@ -167,9 +168,16 @@ class ReportingController extends Controller
     public function searchCandidate (Request $req){
 
         if ($req->searchRequest){
-            $searchRequest=explode(" ", $req->searchRequest);
-            $userFirstName=$searchRequest[0];
-            $userLastName=$searchRequest[1];
+            $searchRequest = $req->searchRequest;
+
+            if (strpos($searchRequest, ' ') !== false) {
+                $searchRequest=explode(" ", $searchRequest);
+                $userFirstName=$searchRequest[0];
+                $userLastName=$searchRequest[1];
+            }else{
+                $userFirstName=$searchRequest;
+                $userLastName=null;
+            }
 
             $searchQuery = DB::table("users")->where("userFirstName", "like", "%". $userFirstName."%")->where("userLastName", "like", "%". $userLastName."%")->selectRaw("concat(userFirstName,' ' ,userLastName) as usersName, userID")->get();
 

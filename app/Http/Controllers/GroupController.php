@@ -146,6 +146,14 @@ class GroupController extends Controller
             $groups = DB::table("group")->leftJoin("groupRole", "groupRole.groupRoleId", "=", "group.groupRoleId")->where("companyID", "=", $checkToken["companyID"])->select(["groupID", "groupName", "roleName", "group.created_at"])->get();
             // Checks if the a company has ay groups at all
             if (count($groups) > 0) {
+                foreach ($groups as $group) {
+                    $groupID = $group->groupID;
+                    $totalCoursesInGroup = DB::table("groupEnrolment")->where("groupID", "=", $groupID)->selectRaw("distinct(courseID), groupID, created_at")->count();
+                    $group->totalCoursesInGroup = $totalCoursesInGroup;
+
+                    $totalUsersInGroup = DB::table("userGroup")->where("groupID", "=", $groupID)->selectRaw("distinct(userID),  userGroupID, groupID, created_at")->count();
+                    $group->totalUsersInGroup = $totalUsersInGroup;
+                }
                 return response()->json(["success" => true, "groups" => $groups]);
             } else {
                 return response()->json(["success" => true, "groups" => [], "message" => "No groups for company"]);
@@ -177,17 +185,17 @@ class GroupController extends Controller
                             return response()->json(["success" => false, "message" => "No more Seats in this course"], 400);
                         } else {
                             // Get Users attached to Group
-                            $users = DB::table("userGroup")->where("groupID", "=", $groupid)->get();
+                            $users = DB::table("userGroup")->join("users", "users.userID", "=", "userGroup.userID")->where("groupID", "=", $groupid)->get();
                             // Check if available course seats is more than or equal to users in the group
                             if ($isSeatAvailable["availableSeat"] >= count($users)) {
                                 DB::table("groupEnrolment")->insert(["courseID" => $courseid, "groupID" => $groupid]);
                                 if (count($users) > 0) {
                                     foreach ($users as $user) {
-                                        DB::table("courseEnrolment")->updateOrInsert(["userID" => $user->userID, "courseID" => $courseid], ["groupID" => $groupid]);
+                                        DB::table("courseEnrolment")->updateOrInsert(["userID" => $user->userID, "courseID" => $courseid, "companyID" => $checkToken["companyID"]], ["groupID" => $groupid]);
                                         $this->assignedACourse($user->userFirstName, $user->userEmail);
                                     }
                                 }
-                                return response()->json(["success" => true, "message" => "Group Assigned Successfully"]);
+                                return response()->json(["success" => true, "message" => "Course Added Successfully"]);
                             } else {
                                 return response()->json(["success" => false, "message" => "Not Enough Course Seats for Group"], 400);
                             }

@@ -97,10 +97,8 @@ class AuthController extends Controller
         $password = $req->password;
 
         $query = DB::table("users")->join("role", "users.userRoleID", "=", "role.roleID")
-        ->join("groupRole", "groupRole.groupRoleId", "=", "users.groupRoleId" )
-        ->where("users.userEmail", "=", $email)->select(["users.*", "role.roleName", 
-        "groupRole.roleName as groupRoleName"
-        ])->get();
+        ->join("groupRole", "groupRole.groupRoleId", "=", "users.groupRoleId" )->join("company", "company.companyID", "=", "users.companyID")->where("users.userEmail", "=", $email)->select(["users.*", "role.roleName", 
+        "groupRole.roleName as groupRoleName", "companyName"])->get();
         if (count($query) === 1) {
             $user = $query[0];
             $pass_ok = password_verify($password, $user->userPassword);
@@ -117,20 +115,24 @@ class AuthController extends Controller
                     // DB::table("login_logs")->insert([ "email" => $email, "message" => "login successful", "status" => 200]);
                     // $userData = ["token" => $token, "role" => $user->roleName,];
                 // }
+
+                //for test sake insert first two login attempts
+                $loginAttempts = DB::table("login_logs")->where("email", "=", $email)->where("status", "=", 200)->count();
+                if ($loginAttempts < 2) 
+                    DB::table("login_logs")->insert([ "email" => $email, "message" => "login successful", "status" => 200]);
+                        
                 $name = $user->userFirstName.' '.$user->userLastName;
-                $userData = ["name"=> $name, "token" => $user->token, "role" => $user->roleName, 
-                "groupRoleName"=> $user->groupRoleName
-                ];
+                $userData = ["name"=> $name, "token" => $user->token, "role" => $user->roleName, "groupRoleName"=> $user->groupRoleName, "companyName"=> $user->companyName];
                 
                 return response()->json(["success" => true, "data" => $userData], 200);
             } else {
                 $message = 'Invalid email or password';
-                DB::table("login_logs")->insert([ "email" => $email, "message" => $message, "status" => 401]);
+                // DB::table("login_logs")->insert([ "email" => $email, "message" => $message, "status" => 401]);
                 return response()->json(["success" => false, "message" => $message], 401);
             }
         } else {
             $message = 'User not registered';
-                DB::table("login_logs")->insert([ "email" => $email, "message" => $message, "status" => 404]);
+                // DB::table("login_logs")->insert([ "email" => $email, "message" => $message, "status" => 404]);
             return response()->json(["success" => false, "message" => $message], 404);
         }
     }
