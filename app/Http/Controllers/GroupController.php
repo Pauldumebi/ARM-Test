@@ -195,7 +195,7 @@ class GroupController extends Controller
                                         $this->assignedACourse($user->userFirstName, $user->userEmail);
                                     }
                                 }
-                                return response()->json(["success" => true, "message" => "Group Assigned Successfully"]);
+                                return response()->json(["success" => true, "message" => "Course Added Successfully"]);
                             } else {
                                 return response()->json(["success" => false, "message" => "Not Enough Course Seats for Group"], 400);
                             }

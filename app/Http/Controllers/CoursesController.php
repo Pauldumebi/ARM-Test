@@ -221,7 +221,7 @@ class CoursesController extends Controller
             $query2 = DB::table("courseTrackerLog")
             ->join("module", "courseTrackerLog.moduleID", "=", "module.moduleID")
             ->join("course", "module.courseID", "=", "course.courseID")
-            ->selectRaw("count(courseTrackerLog.status = 'pass') as modules_completed")->where("userID", "=", $userID)->where("course.courseID", "=", $courseID)->get();
+            ->selectRaw("count(distinct(courseTrackerLog.moduleID)) as modules_completed")->where("userID", "=", $userID)->where("course.courseID", "=", $courseID)->get();
 
             $row->modules_completed=$query2[0]->modules_completed;
         }
@@ -234,7 +234,7 @@ class CoursesController extends Controller
             $roleName = DB::table("users")->join("groupRole", "users.groupRoleId", "=", "groupRole.groupRoleId")->where("token", "=", $token)->get();
             $role = $roleName[0]->roleName;
             $enrolledCourses = DB::table("course")->where("courseCategory", "=", $role)->limit(4)->get();
-            return response()->json(["success" => true, "firstLogin"=> $firstLogin, "message" => "No Enrolled Courses", "recommendedCourses" => $enrolledCourses, ]);
+            return response()->json(["success" => true, "firstLogin"=> $firstLogin, "enrolledCourses" => [], "recommendedCourses" => $enrolledCourses, ]);
         }
     }
   
@@ -272,7 +272,7 @@ class CoursesController extends Controller
 
                 foreach ($modules as $module) {
                     $moduleID = $module->moduleID;
-                    $modulesCompleted = DB::table("courseTrackerLog")->where("moduleID", "=", $moduleID)->where("status", "=", 'pass')->where("userID", "=", $userID)->get();
+                    $modulesCompleted = DB::table("courseTrackerLog")->where("moduleID", "=", $moduleID)->where("status", "=", 'complete')->where("userID", "=", $userID)->get();
 
                     if (count($modulesCompleted) > 0) {
                         $module->status=$modulesCompleted[0]->status;
