@@ -137,9 +137,6 @@ class ReportingController extends Controller
                 $course->status=$status[0]->status ?? $course->status=null;
                 $course->started=true?? $course->started=null;
                 $course->moduleProgress=$moduleProgress;
-                // $course->progressTracker=$progressTracker[0]->progre
-                
-                
 
                 //Candidate score summary
 
@@ -152,10 +149,6 @@ class ReportingController extends Controller
                 $averageScore=DB::table("courseAssessmentLog")->selectRaw("ROUND(avg(score)) as nationalAverage")->where("courseID","=",$courseID)->get();
                 
                 $course->candidateSummary=[$candidateScore,$averageScore];
-
-
-
-
             }
             return response()->json(["success" => true, "candidateDetails" =>$query, "candidateSummary" => $queryForCandidate]);
             
@@ -194,11 +187,7 @@ class ReportingController extends Controller
         $token=$req->token;
         $courseID=$req->courseID;
         if (DB::table("course")->where("courseID","=",$courseID)->exists()) {
-
-            $courseCandidates=DB::table('module')->selectRaw("count(distinct(moduleID)) as module")
-            ->get();
-            
-
+            $courseCandidates=DB::table('module')->selectRaw("count(distinct(moduleID)) as module")->get();
             foreach($courseCandidates as $course){
                 //  $courseID=$course->courseID;
 
@@ -212,8 +201,7 @@ class ReportingController extends Controller
 
                  $failed=DB::table("courseAssessmentLog")->selectRaw("count(status) as failed")->where("status","=","fail")->get();
 
-                 $nationalAverage=DB::table("courseAssessmentLog")->
-                 selectRaw("ROUND(avg(score)) as nationalAverage")->get();
+                 $nationalAverage=DB::table("courseAssessmentLog")->selectRaw("ROUND(avg(score)) as nationalAverage")->get();
 
                 $course->enrolled=$enrolled[0]->enrolled ?? $course->enrolled=null;
                 $course->completed=$completed[0]->completed ?? $course->completed=null;
@@ -230,10 +218,7 @@ class ReportingController extends Controller
                 $courseNotCompleted=DB::table("courseTrackerLog")->selectRaw("count(status) as not_completed")->where("status","=","not complete")->get();
 
                 // $total=$courseCompleted + $courseNotCompleted;
-
                 $course->courseEngagementChart=[$moduleCompletion[0],$courseCompleted[0],$courseNotCompleted[0]];
-
-                
             }
 
              //Course Table
@@ -263,18 +248,11 @@ class ReportingController extends Controller
                 $course->scoreRange=$scoreRange[0]->scoreRange ?? $course->scoreRange=null;
                 $course->status=$status[0]->status ?? $course->status=null;
 
-                
-
-
-
             }
-
-
             return response()->json(["success" => true, "courseDetails"=>$courseCandidates, "courseEngagementChart" =>$courseCandidates,"courseTableDetails"=>$courseTable]);
-
         }
         else{
-            return response()->json(["success" => false, "message"=>"Incorrect response"]);
+            return response()->json(["success" => false, "message"=>"Invalid Course ID"], 400);
         }
     }
 }

@@ -66,7 +66,7 @@ class ProfileController extends Controller
         // Checks if a user is Admin
         if ($isAdmin["isAdmin"]) {
             DB::table("company")->where("companyID", "=", $isAdmin["companyID"])->update(["companyName" => $companyName, "companyAddress1" => $companyAddress]);
-            return response()->json(["successs" => true, "message" => "Company Details Updated"]);
+            return response()->json(["success" => true, "message" => "Company Details Updated"]);
         } else {
             return response()->json(["success" => false, "message" => "Users not Admin"], 401);
         }
