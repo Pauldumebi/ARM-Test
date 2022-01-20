@@ -50,7 +50,8 @@ class CoursesController extends Controller
             $totalSeats = 0;
         }
 
-        $query = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("courseEnrolment.companyID", "=", $companyID)->where("courseID", "=", $courseID)->get();
+        $query = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("courseEnrolment.companyID", "=", $companyID)
+        ->where("courseID", "=", $courseID)->get();
         $assignedSeats = count($query);
 
         return ["Total" => $totalSeats, "Assigned" => $assignedSeats];
@@ -75,8 +76,8 @@ class CoursesController extends Controller
     }
     public function enrolToCourse(Request $req)
     {
-        $token = $req->userToken; //change this back token;
-        $usertoken = $req->token; //change this back userToken;
+        $token = $req->token; //change this back token;
+        $usertoken = $req-> userToken; //change this back userToken;
         $courseID = $req->courseID;
 
         $checkToken = $this->isAdmin($token);
@@ -100,7 +101,7 @@ class CoursesController extends Controller
                         if ($seats["Assigned"] < $seats["Total"]) {
                             $this->assignedACourse($checkUser["userEmail"], $checkUser["userFirstName"]);
 
-                            DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID]);
+                            DB::table("courseEnrolment")->insert(["courseID" => $courseID, "userID" => $userID, "companyID" => $checkToken["companyID"]]);
 
                             return response()->json(["success" => true, "message" => "Enrollment successful"]);
                         }
@@ -297,10 +298,7 @@ class CoursesController extends Controller
         // Checks if the token belongs to an company Admin User
         if ($checkToken["isAdmin"]) {
             $companyID = $checkToken["companyID"];
-
-
             $seats = $this->getSeats($companyID, $courseID);
-
             return response()->json(["success" => true, "data" => ["Totals Seats" => $seats["Total"], "Assigned Seats" => $seats["Assigned"]]]);
         } else {
             return response()->json(["success" => false, "message" => "User not Admin"], 401);
