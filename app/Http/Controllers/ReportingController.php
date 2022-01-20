@@ -76,44 +76,25 @@ class ReportingController extends Controller
         }
     }
 
-    // public function candidateDetails (Request $req ){
-    //     $token=$req->token;
-    //     $email= $req->userEmail;
-    //     if (DB::table("users")->where("userID","=",$userID)->exists()) {
-    //         // $queryUserTable = DB::table("users")->where("token", "=", $token)->orWhere("email", "=", $email)->get();
-        
-    //         // if (count($queryUserTable) === 1) {
-    //          $query = DB::table("users")->join("role", "users.userRoleID", "=", "role.RoleID")->where("token", "=", $token)->select(["users.userID", "users.userFirstName", "users.userEmail","role.roleName","users.userGrade","users.location","users.userGender"])->get();
-
-    //          return response()->json(["success" => true, "message" => $query]);
-    //         }     
-    //     else{
-    //             return response()->json(["success" => false, "message" => "User details incorrect"]);
-    //         }
-        
-    // }
-
     public function candidateTable (Request $req){
 
         $token=$req->token;
-        $userID=$req->userID;
+
+        //Get admin userID by default to populate the table
+        $queryForUserID = DB::table("users")->where("token", "=", $token)->selectRaw("userID")->get();
+        $getUserID=$queryForUserID[0]->userID;
+
+        $userID=$req->userID ?? $getUserID;
        
         if (DB::table("users")->where("userID","=",$userID)->exists()) {
-            //  var_dump($userID);
 
-             $query = DB::table("users")->join("role", "users.userRoleID", "=", "role.RoleID")->join("courseEnrolment","courseEnrolment.userID","=","users.userID")->where("users.userID", "=", $userID)->selectRaw("count(distinct(courseID)) as totalCourses,users.userID,users.employeeID, concat(userFirstName,' ' ,userLastName) as usersName, users.userEmail,role.roleName,users.userGrade,users.location,users.userGender")->groupBy("users.userID")->get();
-
-            // var_dump($query);
-           
+             $query = DB::table("users")->join("groupRole", "users.groupRoleId", "=", "groupRole.groupRoleId")->where("users.userID", "=", $userID)->selectRaw("employeeID, concat(userFirstName,' ' ,userLastName) as usersName, userEmail, groupRole.roleName, userGrade, location, userGender")->get();
        
             $queryForCandidate=DB::table("courseAssessmentLog")->join("course","course.courseID","=","courseAssessmentLog.courseID")->where("courseAssessmentLog.userID","=",$userID)->selectRaw("courseName,max(score) as score,any_value(courseAssessmentLog.courseID) as courseID")->groupBy("courseName")->get();
 
             foreach($queryForCandidate as $course){
             
                 $courseID=$course->courseID;
-            
-                // var_dump($courseID);
-
                 $averageRange=DB::table("courseAssessmentLog")->join("users","users.userID","=","courseAssessmentLog.userID")->selectRaw("concat(min(score),'-',max(score)) as averageRange")->get();
 
                 $status=DB::table("courseAssessmentLog")->join("users","users.userID","=","courseAssessmentLog.userID")->select("status")->get();
@@ -130,8 +111,6 @@ class ReportingController extends Controller
                 $moduleCount=count($getModuleCount);
 
                 $moduleProgress=$moduleCompleted."/".$moduleCount;
-        
-
                 $course->averageRange=$averageRange[0]->averageRange ?? $course->averageRange=null;
                 
                 $course->status=$status[0]->status ?? $course->status=null;
@@ -148,7 +127,7 @@ class ReportingController extends Controller
                 
                 $averageScore=DB::table("courseAssessmentLog")->selectRaw("ROUND(avg(score)) as nationalAverage")->where("courseID","=",$courseID)->get();
                 
-                $course->candidateSummary=[$candidateScore,$averageScore];
+                $course->candidateSummary=[$candidateScore[0],$averageScore[0]];
             }
             return response()->json(["success" => true, "candidateDetails" =>$query, "candidateSummary" => $queryForCandidate]);
             
@@ -158,33 +137,40 @@ class ReportingController extends Controller
             return response()->json(["success" => false, "message" => "User details incorrect"]);
         }
     }
+
     public function searchCandidate (Request $req){
+        $token =$req->token;
+        $queryForCompanyId = DB::table("users")->where("token", "=", $token)->select("companyID")->get();
+        $companyID = $queryForCompanyId[0]->companyID;
 
         if ($req->searchRequest){
-            $searchRequest = $req->searchRequest;
+            $searchRequestVal = $req->searchRequest;
 
-            if (strpos($searchRequest, ' ') !== false) {
-                $searchRequest=explode(" ", $searchRequest);
+            if (strpos($searchRequestVal, ' ') !== false) {
+                var_dump($searchRequestVal);
+                $searchRequest=explode(" ", $searchRequestVal);
                 $userFirstName=$searchRequest[0];
                 $userLastName=$searchRequest[1];
+
+                $searchQuery = DB::table("users")->where("companyID", "=", $companyID)->where("userFirstName", "like", "%". $userFirstName."%")->orWhere("userLastName", "like", "%". $userLastName."%")->selectRaw("concat(userFirstName,' ' ,userLastName) as usersName, userID")->get();
             }else{
-                $userFirstName=$searchRequest;
-                $userLastName=null;
+                $searchQuery = DB::table("users")->where("companyID", "=", $companyID)->where(function ($query) use ($searchRequestVal) {
+                $query->where("userFirstName", "like", "%". $searchRequestVal."%")
+                        ->orWhere("userLastName", "like", "%". $searchRequestVal."%")
+                        ->orWhere("userEmail", "like", "%". $searchRequestVal."%")
+                        ->orWhere("employeeID", "like", "%". $searchRequestVal."%");
+                        })->selectRaw("concat(userFirstName,' ' ,userLastName) as usersName, userID")->get();
             }
 
-            $searchQuery = DB::table("users")->where("userFirstName", "like", "%". $userFirstName."%")->where("userLastName", "like", "%". $userLastName."%")->selectRaw("concat(userFirstName,' ' ,userLastName) as usersName, userID")->get();
-
-         
-
-          return response()->json(["success" => true, "search"=> $searchQuery]);
+            return response()->json(["success" => true, "search"=> $searchQuery]);
         }
         else{
             return response()->json(["success" => false, "search"=> []]);
         }
-       
     }
+
     public function courseView(Request $req){
-        $token=$req->token;
+        // $token=$req->token;
         $courseID=$req->courseID;
         if (DB::table("course")->where("courseID","=",$courseID)->exists()) {
             $courseCandidates=DB::table('module')->selectRaw("count(distinct(moduleID)) as module")->get();
