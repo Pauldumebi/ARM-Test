@@ -33,7 +33,8 @@ class GroupController extends Controller
     private function userExists($token, $companyID)
     {
         // Checks if token has a corresponding user in the DB and return the userID and companyID
-        if (DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 2)->where("companyID", "=", $companyID)->exists()) {
+        // if (DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 2)->where("companyID", "=", $companyID)->exists()) {
+        if (DB::table("users")->where("token", "=", $token)->where("companyID", "=", $companyID)->exists()) {
             $user = DB::table("users")->where("token", "=", $token)->get();
             $name = $user[0]->userFirstName.' '.$user[0]->userLastName;
             return ["userExists" => true, "companyID" => $user[0]->companyID, "userID" => $user[0]->userID, "name" => $name];
@@ -190,12 +191,23 @@ class GroupController extends Controller
                             if ($isSeatAvailable["availableSeat"] >= count($users)) {
                                 DB::table("groupEnrolment")->insert(["courseID" => $courseid, "groupID" => $groupid]);
                                 if (count($users) > 0) {
+                                    $errors=[];
                                     foreach ($users as $user) {
-                                        DB::table("courseEnrolment")->updateOrInsert(["userID" => $user->userID, "courseID" => $courseid, "companyID" => $checkToken["companyID"]], ["groupID" => $groupid]);
-                                        $this->assignedACourse($user->userFirstName, $user->userEmail);
+                                        // Check if Check if any user is already enrolled to any course
+                                        if (DB::table("courseEnrolment")->where([
+                                            'courseID' => $courseid,
+                                            'userID' => $checkToken["userID"],
+                                            'companyID' => $checkToken["companyID"]
+                                        ])->exists()) {
+                                         array_push($errors, $user->userFirstName." already enrolled to course");
+                                        } else {
+                                            var_dump("I got here");
+                                            DB::table("courseEnrolment")->updateOrInsert(["userID" => $user->userID, "courseID" => $courseid, "companyID" => $checkToken["companyID"]], ["groupID" => $groupid]);
+                                            $this->assignedACourse($user->userFirstName, $user->userEmail);
+                                        }
                                     }
                                 }
-                                return response()->json(["success" => true, "message" => "Course Added Successfully"]);
+                                return response()->json(["success" => true, "message" => "Course Added Successfully", "errors" => $errors]);
                             } else {
                                 return response()->json(["success" => false, "message" => "Not Enough Course Seats for Group"], 400);
                             }

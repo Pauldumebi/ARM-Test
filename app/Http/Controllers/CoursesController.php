@@ -33,7 +33,8 @@ class CoursesController extends Controller
     private function userExists($token, $companyID)
     {
         // Checks if token has a corresponding user in the DB and return the userID and companyID
-        if (DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 2)->where("companyID", "=", $companyID)->exists()) {
+        // if (DB::table("users")->where("token", "=", $token)->where("userRoleID", "=", 2)->where("companyID", "=", $companyID)->exists()) {
+        if (DB::table("users")->where("token", "=", $token)->where("companyID", "=", $companyID)->exists()) {
             $user = DB::table("users")->where("token", "=", $token)->get();
             return ["userExists" => true, "companyID" => $user[0]->companyID, "userID" => $user[0]->userID, "userFirstName" => $user[0]->userFirstName, "userEmail" => $user[0]->userEmail];
         } else {
@@ -258,9 +259,11 @@ class CoursesController extends Controller
     {
         $courseID = $req->courseID;
         $token = $req->token;
-        $user = DB::table("users")->where("token", "=", $token)->get();
-        if (count($user)) {
-            $userID = $user[0]->userID;
+        // $user = DB::table("users")->where("token", "=", $token)->get();
+        $userID = $this->getId("users", "token", $token, "userID");
+        // if (count($user)) {
+        if ($userID) {
+            // $userID = $user[0]->userID;
             $query = DB::table("course")->where("courseID", "=", $courseID)->get();
             // var_dump($query);
             if (count($query) > 0) {
@@ -319,7 +322,7 @@ class CoursesController extends Controller
             if (count($courses) > 0) {
                 $i = 0;
                 foreach ($courses as $course) {
-                    if (DB::table("courseEnrolment")->join("course", "courseEnrolment.courseID", "=", "course.courseID")->join("users", "courseEnrolment.userID", "=", "users.userID")->select(["course.courseID", "course.courseName", "course.courseDescription", "course.duration", "course.courseType", "courseEnrolment.created_at"])->where("users.token", "=", $token)->where("course.courseID", "=", $course->courseID)->exists()) {
+                    if (DB::table("courseSeat")->join("course", "courseEnrolment.courseID", "=", "course.courseID")->join("users", "courseEnrolment.userID", "=", "users.userID")->select(["course.courseID", "course.courseName", "course.courseDescription", "course.duration", "course.courseType", "courseEnrolment.created_at"])->where("users.token", "=", $token)->where("course.courseID", "=", $course->courseID)->exists()) {
                         $course->enrolled = true;
                     } else {
                         $course->enrolled = false;
@@ -334,38 +337,18 @@ class CoursesController extends Controller
         }
     }
 
-    // public function courseTrackerLog($token)
-    // {
-    //     $user = DB::table("users")->where("token", "=", $token)->get();
-    //     if (count($user) === 1) {
-    //         $query = DB::table("courseTrackerLog")->join("users", "courseTrackerLog.userID", "users.userID")->join("module", "topic.moduleID", "=", "module.moduleID")->where("users.token", "=", $token)->get();
-    //         if (count($query) > 0) {
-    //             return response()->json(["success" => true, "courseTrackerLog" => $query]);
-    //         } else {
-    //             return response()->json(["success" => true, "courseTrackerLog" => [], "message" => "No data found"]);
-    //         }
-    //     } else {
-    //         return response()->json(["success" => false, "message" => "User not found"]);
-    //     }
-    // }
-
-    // public function getCourseTrackerLog (Request $req) {
-    //     $token = $req->token;
-    //     $query = DB::table("courseEnrolment")->join("course", "courseEnrolment.courseID", "=", "course.courseID")->join("users", "courseEnrolment.userID", "=", "users.userID")->select(["course.courseID", "course.courseName", "course.courseDescription", "course.duration", "course.courseType", "courseEnrolment.created_at"])->where("users.token", "=", $token)->get();
-    //     $query = DB::table("courseTrackerLog")->join("users", "courseTrackerLog.userID", "users.userID")->join("module", "topic.moduleID", "=", "module.moduleID")->where("users.token", "=", $token)->get();
-    //     if (count($query) > 0) 
-    //         return response()->json(["success" => true, "message" => $query]);
-    //     else 
-    //     return response()->json(["success" => false, "message" => "no table found"], 204);
-    // }
-
     public function insertCourseTracker (Request $req) {
         $token = $req->token;
         $moduleID = $req->moduleID;
-        $user = DB::table("users")->where("token", "=", $token)->get();
-        if (count($user) === 1) {
-            $userID = $user[0]->userID;
-            DB::table("courseTrackerLog")->insert(["userID" => $userID, "moduleID" => $moduleID]);
+        $score = $req->score;
+        $userID = $this->getId("users", "token", $token, "userID");
+        var_dump($userID);
+        if ($userID) {
+            if ($score) {
+                $courseID = $this->getId("module", "moduleID", $moduleID, "courseID");
+                DB::table("courseAssessmentLog")->insert(["userID" => $userID, "courseID" => $courseID, "score" => $score]);
+            } else
+                DB::table("courseTrackerLog")->insert(["userID" => $userID, "moduleID" => $moduleID]);
             return response()->json(["success" => true, "message" => "successfully inserted"]);
         } else
             return response()->json(["success" => false, "message" => "User not found"], 404);

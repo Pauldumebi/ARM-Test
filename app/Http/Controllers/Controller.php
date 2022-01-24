@@ -58,4 +58,8 @@ class Controller extends BaseController
         }
         return $phone;
     }
+
+    public function getId($table, $column, $columnValue, $value ) {
+        return DB::table($table)->where($column, "=", $columnValue)->value($value);
+    }
 }
