@@ -175,4 +175,14 @@ class UserController extends Controller
             return response()->json(["success" => true, "users" => [], "message" => "No Users Available"]);
         }
     }
+    // public function bulkUpload (Request $req){
+    //     $employeeID=$req->employeeID;
+    //     $email=$req->userEmail;
+        
+    //     if ($employeeID and $email !=null){
+    //         if(DB::table("users")->where("userEmail", "=", $email)->where("employeeID","=", $employeeID)->exists()){
+    //             return response()->json(["success" => false,])
+    //         }
+    //     }
+    // }
 }
