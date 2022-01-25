@@ -42,6 +42,7 @@ Route::prefix("v1")->middleware("isAdmin")->group(function () {
     Route::delete("/delete-user", [UserController::class, "deleteCompanyUser"]);
     Route::post("/companyusers", [UserController::class, "getCompanyUsers"]);
     Route::post("/company-users-search", [UserController::class, "companyUserSearch"]);
+    Route::post("/bulk-upload", [UserController::class, "bulkUpload"]);
 });
 
 // Course Controller Endpoints
