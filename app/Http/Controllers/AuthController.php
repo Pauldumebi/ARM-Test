@@ -73,7 +73,7 @@ class AuthController extends Controller
             } 
 
             $query = DB::table("users")->where("userEmail", "=", $email)->select(["token"])->get();
-            $userData = ["token" => $query[0]->token, "role" => "admin"];
+            $userData = ["token" => $query[0]->token, "role" => "admin", "name" => $query[0]->userFirstName.' '.$query[0]->userLastName];
             $this->sendVerifyEmail($firstname, $email, $email_token);
             return response()->json(["success" => true, "data" => $userData, "message" => 'Email sent, please check your inbox']);
         } else {
@@ -122,7 +122,12 @@ class AuthController extends Controller
                     DB::table("login_logs")->insert([ "email" => $email, "message" => "login successful", "status" => 200]);
                         
                 $name = $user->userFirstName.' '.$user->userLastName;
-                $userData = ["name"=> $name, "token" => $user->token, "role" => $user->roleName, "groupRoleName"=> $user->groupRoleName, "companyName"=> $user->companyName];
+
+                $getFirstLogin = DB::table("login_logs")->join("users", "email","=", "userEmail")->where("userEmail", "=", $email)->where("status", "=", 200)->count();
+
+                $getFirstLogin === 1 ? $firstLogin = true : $firstLogin = false;
+
+                $userData = ["name"=> $name, "token" => $user->token, "role" => $user->roleName, "groupRoleName"=> $user->groupRoleName, "companyName"=> $user->companyName, "firstLogin"=> $firstLogin];
                 
                 return response()->json(["success" => true, "data" => $userData], 200);
             } else {

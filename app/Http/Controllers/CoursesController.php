@@ -268,7 +268,9 @@ class CoursesController extends Controller
             // var_dump($query);
             if (count($query) > 0) {
                 $courseName = $query[0]->courseName;
-                $modules = DB::table("module")->where("courseID", "=", $courseID)->get();
+                $modules = DB::table("module")->where("courseID", "=", $courseID)->where("type", "=", null)->get();
+                $assessment = DB::table("module")->where("courseID", "=", $courseID)->where("type", "=", "assessment")->get();
+                
 
                 if (!$modules) {
                     return response()->json(["success" => true, "courseName" => $courseName, "modules" => "No modules for this course"]);
@@ -284,7 +286,28 @@ class CoursesController extends Controller
                     else 
                         $module->status="null";
                 }
-                return response()->json(["success" => true, "courseName" => $courseName, "modules" => $modules]);
+                foreach ($assessment as $i) {
+                    $assessmentStatus = DB::table("courseAssessmentLog")->where("courseID", "=", $courseID)->where("userID", "=", $userID)->orderBy("score", "desc")->get();
+
+                    if (count($assessmentStatus) > 0) {
+                        $i->status=$assessmentStatus[0]->status;
+                    }
+                    else 
+                        $i->status="null";
+                    
+                }
+
+                $started = DB::table("courseTrackerLog")->join("module", "courseTrackerLog.moduleID", "=", "module.moduleID")
+                ->join("users", "users.userID", "=", "courseTrackerLog.userID")->join("course", "course.courseID", "=", "module.courseID")->where("courseTrackerLog.userID", "=", $userID)->where("course.courseID", "=", $courseID)->selectRaw("courseTrackerLog.moduleID")->groupBy("courseTrackerLog.moduleID")->get();
+
+                $moduleCompleted = count($started);
+
+                $getModuleCount = DB::table('module')->join("course", "course.courseID", "=", "module.courseID")->where("course.courseID", "=", $courseID)->where("type", "=", null)->select("moduleID", "moduleName", "course.courseID")->get();
+                $moduleCount = count($getModuleCount);
+
+                $moduleProgress = $moduleCompleted . "/" . $moduleCount;
+
+                return response()->json(["success" => true, "courseName" => $courseName, "progress"=> $moduleProgress, "modules" => $modules, "assessment"=> $assessment]);
             } else {
                 return response()->json(["success" => false, "message" => "Course Does not Exist"], 400);
             }
@@ -322,7 +345,7 @@ class CoursesController extends Controller
             if (count($courses) > 0) {
                 $i = 0;
                 foreach ($courses as $course) {
-                    if (DB::table("courseSeat")->join("course", "courseEnrolment.courseID", "=", "course.courseID")->join("users", "courseEnrolment.userID", "=", "users.userID")->select(["course.courseID", "course.courseName", "course.courseDescription", "course.duration", "course.courseType", "courseEnrolment.created_at"])->where("users.token", "=", $token)->where("course.courseID", "=", $course->courseID)->exists()) {
+                    if (DB::table("courseSeat")->join("course", "courseSeat.courseID", "=", "course.courseID")->join("users", "courseSeat.companyID", "=", "users.companyID")->select(["course.courseID", "course.courseName", "course.courseDescription", "course.duration", "course.courseType", "courseSeat.created_at"])->where("users.token", "=", $token)->where("course.courseID", "=", $course->courseID)->exists()) {
                         $course->enrolled = true;
                     } else {
                         $course->enrolled = false;
@@ -341,12 +364,13 @@ class CoursesController extends Controller
         $token = $req->token;
         $moduleID = $req->moduleID;
         $score = $req->score;
+        $status = $req->status;
         $userID = $this->getId("users", "token", $token, "userID");
         var_dump($userID);
         if ($userID) {
             if ($score) {
                 $courseID = $this->getId("module", "moduleID", $moduleID, "courseID");
-                DB::table("courseAssessmentLog")->insert(["userID" => $userID, "courseID" => $courseID, "score" => $score]);
+                DB::table("courseAssessmentLog")->insert(["userID" => $userID, "courseID" => $courseID, "score" => $score, "status" => $status ]);
             } else
                 DB::table("courseTrackerLog")->insert(["userID" => $userID, "moduleID" => $moduleID]);
             return response()->json(["success" => true, "message" => "successfully inserted"]);

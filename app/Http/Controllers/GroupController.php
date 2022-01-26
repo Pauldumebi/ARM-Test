@@ -167,7 +167,7 @@ class GroupController extends Controller
     public function assignCourse(Request $req)
     {
         $token = $req->token;
-        $courseid = $req->courseID;
+        $courseid = (int)$req->courseID;
         $groupid = $req->groupid;
 
         $checkToken = $this->isAdmin($token);
@@ -176,7 +176,7 @@ class GroupController extends Controller
             // Check if the group id matches a group for the Admin's company
             if (DB::table("group")->where("groupID", "=", $groupid)->where("companyID", "=", $checkToken["companyID"])->exists()) {
                 // Check if course id has been enrolled to by the company admin
-                if (DB::table("courseEnrolment")->where("courseID", "=", $courseid)->where("userID", "=", $checkToken["userID"])->exists()) {
+                if (DB::table("courseSeat")->where("courseID", "=", $courseid)->where("companyID", "=", $checkToken["companyID"])->exists()) {
                     // Checks if the group is already assigned to the course
                     if (DB::table("groupEnrolment")->where("courseID", "=", $courseid)->where("groupID", "=", $groupid)->doesntExist()) {
                         // Get Available Seats
@@ -189,22 +189,26 @@ class GroupController extends Controller
                             $users = DB::table("userGroup")->join("users", "users.userID", "=", "userGroup.userID")->where("groupID", "=", $groupid)->get();
                             // Check if available course seats is more than or equal to users in the group
                             if ($isSeatAvailable["availableSeat"] >= count($users)) {
+
                                 DB::table("groupEnrolment")->insert(["courseID" => $courseid, "groupID" => $groupid]);
+
                                 if (count($users) > 0) {
                                     $errors=[];
                                     foreach ($users as $user) {
-                                        // Check if Check if any user is already enrolled to any course
-                                        if (DB::table("courseEnrolment")->where([
-                                            'courseID' => $courseid,
-                                            'userID' => $checkToken["userID"],
-                                            'companyID' => $checkToken["companyID"]
-                                        ])->exists()) {
-                                         array_push($errors, $user->userFirstName." already enrolled to course");
-                                        } else {
-                                            var_dump("I got here");
+                                        // Check if any user is already enrolled to any course
+                                        // if (DB::table("courseEnrolment")->where("courseID", "=", $courseid)->where("userID", "=", $checkToken["userID"])->where("companyID", "=", $checkToken["companyID"])
+                                        // ->where([
+                                        //     'courseID' => $courseid,
+                                        //     'userID' => $checkToken["userID"],
+                                        //     'companyID' => $checkToken["companyID"]
+                                        // ])
+                                        // ->exists()) {
+                                        //  array_push($errors, $user->userFirstName." already enrolled to course");
+                                        // } else {
                                             DB::table("courseEnrolment")->updateOrInsert(["userID" => $user->userID, "courseID" => $courseid, "companyID" => $checkToken["companyID"]], ["groupID" => $groupid]);
+                                            
                                             $this->assignedACourse($user->userFirstName, $user->userEmail);
-                                        }
+                                        // }
                                     }
                                 }
                                 return response()->json(["success" => true, "message" => "Course Added Successfully", "errors" => $errors]);
