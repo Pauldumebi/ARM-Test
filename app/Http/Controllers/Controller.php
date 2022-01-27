@@ -62,4 +62,11 @@ class Controller extends BaseController
     public function getId($table, $column, $columnValue, $value ) {
         return DB::table($table)->where($column, "=", $columnValue)->value($value);
     }
+
+    public function getCompanyID($token) {
+        $table = DB::table("users")->where("token", "=", $token)->get();
+        if (count($table)>0) {
+            return $table[0]->companyID;
+        }
+    }
 }
