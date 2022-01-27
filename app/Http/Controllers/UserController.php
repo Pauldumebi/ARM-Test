@@ -172,44 +172,52 @@ class UserController extends Controller
         $getPath = $upload->getRealPath();
 
         $file = fopen($getPath, 'r');
+        $headerLine = true;
+        $Errors = [];
 
-        while ($columns = fgetcsv($file)) {
-            if ($columns[0] == "")
-                continue;
-            $data =  $columns;
+        while (($columns = fgetcsv($file, 1000, ","))!== FALSE) {
+            if($headerLine) { $headerLine = false; }
+            
+            else {
+            
+                if ($columns[0] == "")
+                    continue;
+                $data =  $columns;
 
-            foreach ($data as $key => $value) {
-                $userFirstName = $data[0];
-                $userLastName = $data[1];
-                $userEmail = $data[2];
-                $userPhone = $data[3];
-                $userGender = $data[4];
-                $userGrade = $data[5];
-                // $groupRoleId= $data[7];
-                $employeeID = $data[6];
-                $location = $data[7];
-            }
-
-            try {
-                if (!DB::table('usersCopy')->where("email", "=", $userEmail)->exists()) {
-                    var_dump($userFirstName);
-                    var_dump($userLastName);
-                    var_dump($userEmail);
-                    var_dump($userPhone);
-                    var_dump($userGender);
-                    var_dump($userGrade);
-                    $newtoken = $this->RandomCodeGenerator(80);
-
-                    $user = DB::table('usersCopy')->insert(["userFirstName" => $userFirstName, "userLastName" => $userLastName, "userEmail" => $userEmail, "userPhone" => $userPhone, "userGender" => $userGender, "userGrade" => $userGrade,  "location" => $location, "companyID" => $companyID,  "employeeID" => $employeeID, "token" => $newtoken]);
-
-                    // $user->save();
+                foreach ($data as $key => $value) {
+                    $employeeID = $data[0];
+                    $userFirstName = $data[1];
+                    $userLastName = $data[2];
+                    $userEmail = $data[3];
+                    $userGender = $data[4];
+                    $userGrade = $data[5];
+                    $location = $data[6];
+                    $userToken = $this->RandomCodeGenerator(80);
                 }
-            } catch (Exception $e) {
-                if ($e->getCode() == 23000)
-                    return 'we have found duplicate records';
-                else
-                    $e->getCode();
-            };
+
+                if ($employeeID && $userFirstName && $userFirstName && $userEmail) {
+                    if (!DB::table('usersCopy')->where("userEmail", "=", $userEmail)->exists()) {
+
+                        DB::table('usersCopy')->insert(["userFirstName" => $userFirstName, "userLastName" => $userLastName, "userEmail" => $userEmail, "userGender" => $userGender, "userGrade" => $userGrade,  "location" => $location, "companyID" => $companyID,  "employeeID" => $employeeID, "token" => $userToken]);
+
+                        var_dump($employeeID);
+                        var_dump($userFirstName);
+                        var_dump($userLastName);
+                        var_dump($userEmail);
+                        var_dump($userGender);
+                        var_dump($userGrade);
+                        var_dump($location);
+                        var_dump($companyID);
+                        var_dump($userToken);
+                        
+                        
+                    }else 
+                        array_push($Errors, "We found a duplicate for ".$userEmail);     
+                }else {
+                    array_push($Errors, "One or more fields missing for ".$userFirstName.' '.$userLastName);
+                }
+            }
         }
+        return response()->json(["success" => true, "message" => "successful", "error" => $Errors]);
     }
 }
