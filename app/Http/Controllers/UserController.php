@@ -176,4 +176,89 @@ class UserController extends Controller
             return response()->json(["success" => true, "users" => [], "message" => "No Users Available"]);
         }
     }
+    // public function bulkUpload (Request $req){
+    //     $employeeID=$req->employeeID;
+    //     $email=$req->userEmail;
+        
+    //     if ($employeeID and $email !=null){
+    //         if(DB::table("users")->where("userEmail", "=", $email)->where("employeeID","=", $employeeID)->exists()){
+    //             return response()->json(["success" => false,])
+    //         }
+    //     }
+    // }
+//     public function bulkUpload(Request $request){
+//         if($request->isMethod('post')){
+//             $data = $request->all();
+//             $file = Input::file('SampleCandidateImport');
+//             $handle = fopen($file,"r");
+//             $header = fgetcsv($handle, 0, ',');
+//             $countheader= count($header); 
+//             if($countheader<3  && in_array('name_',$header) && in_array('phone',$header) && in_array('admission_date',$header)){
+//                 Excel::load($file ,function($reader){
+//                     $reader->each(function($sheet){
+//                         $sheet['admission_date'] = date('Y-m-d',strtotime($sheet['admission_date']));
+//                         EmployeeSchedule::firstOrCreate($sheet->toArray());
+//                     });
+//                 });
+//                 if (DB::table('tempDb')->where('name_',"=",)){
+
+//                 }
+//             } else {
+//                 return redirect()->back()->with('flash_message_error', 'Your CSV files has unmatched Columns in our database...Your columns must be in this sequence <strong> name_,phone,admission_date </strong> only');
+//             }
+//             return redirect()->back()->with('flash_message_success', 'Your File has been Uploaded successfully!');
+// }
+
+public function store(Request $request)
+
+    {
+        $upload = $request->file('SelectCandidateImport');
+        $getPath = $upload->getRealPath();
+
+        $file = fopen($getPath,'r');        
+
+        while($columns = fgetcsv($file))
+        {
+            if($columns[0]=="")
+            continue;
+            $data =  $columns;
+
+            foreach($data as $key=>$value)
+            {
+                $userFirstName = $data[0];
+                $userLastName = $data[1];
+                $userEmail=$data[2];
+                $userPhone= $data[3];
+                $userGender= $data[4];
+                $userGrade= $data[5];
+                // $groupRoleId= $data[7];
+                $employeeID=$data[6];
+                $location=$data[7];
+            }
+
+            try{
+             if (!DB::table('usersCopy')->where("email","=",$email)->exists()) {
+                var_dump($userFirstName);
+                var_dump($userLastName);
+                var_dump($userEmail);
+                var_dump($userPhone);
+                var_dump($userGender);
+                var_dump($userGrade);
+                $newtoken = $this->RandomCodeGenerator(80);
+
+                $user = DB::table('usersCopy')->insert(["userFirstName" => $userFirstName, "userLastName" => $userLastName, "userEmail" => $userEmail, "userPhone" => $userPhone, "userGender" => $userGender, "userGrade"=> $userGrade,  "location" => $location, "companyID" => $companyID,  "employeeID" => $employeeID, "token" => $newtoken]);
+
+                // $user->save();
+             }
+            }
+            catch(Exception $e)
+            {
+              if($e->getCode() == 23000)
+                  return 'we have found duplicate records';
+              else
+                  $e->getCode();
+            };
+
+        }
+}
 }
