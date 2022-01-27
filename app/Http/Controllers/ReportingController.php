@@ -169,6 +169,10 @@ class ReportingController extends Controller
         $location = $req->location;
         $roleName = $req->roleName;
         $userGrade = $req->userGrade;
+        $page_number = $req->page_number ?? 1;
+        $page_size = $req->page_size ?? 100;
+        $offset = ($page_number - 1) * $page_size;
+
         $users = DB::table("users")->where("token", "=", $token)->get();
         $companyID = $users[0]->companyID;
 
@@ -184,16 +188,7 @@ class ReportingController extends Controller
                         $queryForGroupRoleID = DB::table("groupRole")->where("roleName", "=", $roleName)->get();
                         $groupRoleID = $queryForGroupRoleID[0]->groupRoleId;
                     }
-                    $enrolled = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("courseEnrolment.courseID", "=", $courseID)->where("courseEnrolment.companyID", "=", $companyID)->where("groupRoleID", "like", "%" . $groupRoleID . "%")->where("userGrade", "like", "%" . $userGrade . "%")->where("location", "like", "%" . $location . "%")->where("userGender", "like", "%" . $userGender . "%")->count();
-
-                    $completedCount = DB::table('courseAssessmentLog')->join("users", "courseAssessmentLog.userID", "=", "users.userID")->selectRaw("distinct(courseAssessmentLog.userID)")->where("courseID", "=", $courseID)->where("companyID", "=", $companyID)->where("groupRoleID", "like", "%" . $groupRoleID . "%")->where("userGrade", "like", "%" . $userGrade . "%")->where("location", "like", "%" . $location . "%")->where("userGender", "like", "%" . $userGender . "%")->get();
-
-                    $completed = count($completedCount);
-                    $notCompleted = $enrolled - $completed;
-
-                    $passed = DB::select("select id, courseAssessmentLog.userID, score, status, courseAssessmentLog.created_at FROM courseAssessmentLog join users on courseAssessmentLog.userID=users.userID where courseID=$courseID and companyID=$companyID and status='pass' and groupRoleID like '%$groupRoleID%' and userGrade like '%$userGrade%' and location like '%$location%' and userGender like '%$userGender%' and score IN (SELECT MAX(score) FROM courseAssessmentLog GROUP BY courseAssessmentLog.userID)");
-
-                    $failed = DB::select("select id, courseAssessmentLog.userID, score, status, courseAssessmentLog.created_at FROM courseAssessmentLog join users on courseAssessmentLog.userID=users.userID where courseID=$courseID and companyID=$companyID and status='fail' and groupRoleID like '%$groupRoleID%' and userGrade like '%$userGrade%' and location like '%$location%' and userGender like '%$userGender%' and score IN (SELECT MAX(score) FROM courseAssessmentLog GROUP BY courseAssessmentLog.userID)");
+                    $enrolled = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("courseEnrolment.courseID", "=", $courseID)->where("courseEnrolment.companyID", "=", $companyID)->where("groupRoleID", "like", "%" . $groupRoleID . "%")->where("userGrade", "like", "%" . $userGrade . "%")->where("location", "like", "%" . $location . "%")->where("userGender", "like", "%" . $userGender . "%")->get();
 
                     $moduleCompleted = [];
                     foreach ($modules as $module) {
@@ -208,31 +203,13 @@ class ReportingController extends Controller
                         array_push($moduleCompleted, array("module".$moduleID."Total" => $countModulesCompleted));
                     }
 
-                    $page_number = $req->page_number ?? 1;
-                    $page_size = $req->page_size ?? 10;
-                    $offset = ($page_number - 1) * $page_size;
-
                     $users = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("courseEnrolment.companyID", "=", $companyID)->where("groupRoleID", "like", "%" . $groupRoleID . "%")->where("userGrade", "like", "%" . $userGrade . "%")->where("location", "like", "%" . $location . "%")->where("userGender", "like", "%" . $userGender . "%")->selectRaw("employeeID, concat(userFirstName,' ' ,userLastName) as usersName, users.userID")->skip($offset)->take($page_size)->get();
 
                     $totalUsers = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("courseEnrolment.companyID", "=", $companyID)->where("groupRoleID", "like", "%" . $groupRoleID . "%")->where("userGrade", "like", "%" . $userGrade . "%")->where("location", "like", "%" . $location . "%")->where("userGender", "like", "%" . $userGender . "%")->selectRaw("employeeID, concat(userFirstName,' ' ,userLastName) as usersName, users.userID")->count();
 
                 } else {
-                    $enrolled = DB::table("courseEnrolment")->where("courseEnrolment.courseID", "=", $courseID)->where("companyID", "=", $companyID)->count();
 
-                    $completedCount = DB::table('courseAssessmentLog')->join("users", "courseAssessmentLog.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("companyID", "=", $companyID)->selectRaw("distinct(courseAssessmentLog.userID)")->get();
-
-                    $completed = count($completedCount);
-
-                    $notCompleted = $enrolled - $completed;
-
-                    $passed = DB::select("select id, courseAssessmentLog.userID, score, status, courseAssessmentLog.created_at FROM courseAssessmentLog join users on courseAssessmentLog.userID=users.userID where courseID=$courseID and companyID=$companyID and status='pass' and score IN (SELECT MAX(score) FROM courseAssessmentLog GROUP BY courseAssessmentLog.userID)");
-
-                    $failed = DB::select("select id, courseAssessmentLog.userID, score, status, courseAssessmentLog.created_at FROM courseAssessmentLog join users on courseAssessmentLog.userID=users.userID where courseID=$courseID and companyID=$companyID and status='fail' and score IN (SELECT MAX(score) FROM courseAssessmentLog GROUP BY courseAssessmentLog.userID)");
-
-                    // $passed = DB::table('courseAssessmentLog')->selectRaw("distinct(userID)")->join("users", "courseAssessmentLog.userID", "=", "users.userID")
-                    // ->where("courseID", "=", $courseID)->where("companyID", "=", $companyID)->where("status", "=", "pass")->count();
-                    // $failed = DB::table('courseAssessmentLog')->selectRaw("distinct(userID)")->join("users", "courseAssessmentLog.userID", "=", "users.userID")
-                    // ->where("courseID", "=", $courseID)->where("companyID", "=", $companyID)->where("status", "=", "fail")->count();
+                    $enrolled = DB::table("courseEnrolment")->where("courseEnrolment.courseID", "=", $courseID)->where("companyID", "=", $companyID)->get();
 
                     $moduleCompleted = [];
                     foreach ($modules as $module) {
@@ -245,18 +222,16 @@ class ReportingController extends Controller
                         $countModulesCompleted = count($getModuleCompletedCount);
                         array_push($moduleCompleted, array("module".$moduleID."Total" => $countModulesCompleted));
                     }
-
-                    $page_number = $req->page_number ?? 1;
-                    $page_size = $req->page_size ?? 10;
-                    $offset = ($page_number - 1) * $page_size;
                     
-
                     $users = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("courseEnrolment.companyID", "=", $companyID)->selectRaw("employeeID, concat(userFirstName,' ' ,userLastName) as usersName, users.userID")->skip($offset)->take($page_size)->get();
 
                     $totalUsers = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("courseEnrolment.companyID", "=", $companyID)->selectRaw("employeeID, concat(userFirstName,' ' ,userLastName) as usersName, users.userID")->count();
 
                 }
 
+                $countCompleted = 0;
+                $countPassed = 0;
+                $countFailed = 0;
                 foreach ($users as $user) {
                     $userID = $user->userID;
                     $queryForCompleted = DB::table("courseAssessmentLog")->join("users", "courseAssessmentLog.userID", "=", "users.userID")->where("courseAssessmentLog.userID", "=", $userID)->where("courseID", "=", $courseID)->where("users.companyID", "=", $companyID)->selectRaw("score, status")->orderBy("score", "desc")->get();
@@ -264,12 +239,24 @@ class ReportingController extends Controller
                     $getCompleted = DB::table("courseTrackerLog")->join("module", "courseTrackerLog.moduleID", "=", "module.moduleID")->join("course", "course.courseID", "=", "module.courseID")->join("users", "users.userID", "=", "courseTrackerLog.userID")->where("course.courseID", "=", $courseID)->where("users.companyID", "=", $companyID)->where("courseTrackerLog.userID", "=", $userID)->selectRaw("courseTrackerLog.moduleID")->groupBy("courseTrackerLog.moduleID")->get();
 
                     $moduleProgress = count($getCompleted) . "/" . count($modules);
+                    if (count($getCompleted) == count($modules)) {
+                        $countCompleted++;
+                    }
+
+                    if (count($queryForCompleted) > 0 ) {
+                        if ($queryForCompleted[0]->status === "pass") {
+                            $countPassed++;
+                        } else {
+                            $countFailed++;
+                        }
+                    }
+                        
                     $user->moduleProgress=$moduleProgress;
                     $user->score = $queryForCompleted[0]->score  ?? $user->score = 0;
                     $user->status = $queryForCompleted[0]->status  ?? $user->status = 'pending';
                 }    
                 
-                $courseUserDetails = array("noOfModules"=>count($modules), "enrolled" => $enrolled, "completed" => $completed, "notCompleted" => $notCompleted, "passed" => count($passed), "failed"=>count($failed));
+                $courseUserDetails = array("noOfModules"=>count($modules), "enrolled" => count($enrolled), "completed" => $countCompleted, "notCompleted" => (count($enrolled) - $countCompleted), "passed" => $countPassed, "failed"=>$countFailed);
 
                 return response()->json(["success" => true, "courseDetails" => $courseUserDetails, "courseEngagementChart" => $moduleCompleted, "totalUsers" => $totalUsers,  "courseTableDetails" => $users]);
             }else 

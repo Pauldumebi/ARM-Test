@@ -366,7 +366,6 @@ class CoursesController extends Controller
         $score = $req->score;
         $status = $req->status;
         $userID = $this->getId("users", "token", $token, "userID");
-        var_dump($userID);
         if ($userID) {
             if ($score) {
                 $courseID = $this->getId("module", "moduleID", $moduleID, "courseID");
