@@ -59,6 +59,7 @@ Route::prefix("v1")->group(function () {
     Route::post("/assignment-courses", [CoursesController::class, "getCoursesAssignment"]);
     Route::post("/course-trackerLog", [CoursesController::class, "getCourseTrackerLog"]);
     Route::post("/course-progress", [CoursesController::class, "insertCourseTracker"]);
+    Route::post("/assessment-progress", [CoursesController::class, "insertAssessmentTracker"]);
     Route::get("/course-tracker/{token}", [CoursesController::class, "courseTrackerLog"]);
 });
 

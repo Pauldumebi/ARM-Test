@@ -79,9 +79,7 @@ class ReportingController extends Controller
 
     public function candidateTable(Request $req)
     {
-
         $token = $req->token;
-
         //Get admin userID by default to populate the table
         $queryForUserID = DB::table("users")->where("token", "=", $token)->selectRaw("userID, companyID")->get();
         $getUserID = $queryForUserID[0]->userID;
@@ -98,7 +96,8 @@ class ReportingController extends Controller
             foreach ($queryForCandidate as $course) {
 
                 $courseID = $course->courseID;
-                $averageRange = DB::table("courseAssessmentLog")->join("users", "users.userID", "=", "courseAssessmentLog.userID")->where("courseAssessmentLog.userID", "=", $userID)->where("courseAssessmentLog.courseID", "=", $courseID)->where("companyID", "=", $companyID)->selectRaw("concat(min(score),'-',max(score)) as averageRange")->get();
+                
+                // $averageRange = DB::table("courseAssessmentLog")->join("users", "users.userID", "=", "courseAssessmentLog.userID")->where("courseAssessmentLog.userID", "=", $userID)->where("courseAssessmentLog.courseID", "=", $courseID)->where("companyID", "=", $companyID)->selectRaw("concat(min(score),'-',max(score)) as averageRange")->get();
 
                 $status = DB::table("courseAssessmentLog")->join("users", "users.userID", "=", "courseAssessmentLog.userID")->where("courseAssessmentLog.userID", "=", $userID)->where("courseAssessmentLog.courseID", "=", $courseID)->where("companyID", "=", $companyID)->select("status")->get();
 
@@ -111,7 +110,7 @@ class ReportingController extends Controller
                 $moduleCount = count($getModuleCount);
 
                 $moduleProgress = $moduleCompleted . "/" . $moduleCount;
-                $course->averageRange = $averageRange[0]->averageRange ?? $course->averageRange = null;
+                // $course->averageRange = $averageRange[0]->averageRange ?? $course->averageRange = null;
                 (count($status) > 0) ? $course->status = $status[0]->status : $course->status = 'pending';
                 (count($started) > 0) ? $course->started = true : $course->started = false;
                 $course->moduleProgress = $moduleProgress;
@@ -121,6 +120,20 @@ class ReportingController extends Controller
                 $averageScore = DB::table("courseAssessmentLog")->selectRaw("ROUND(avg(score)) as nationalAverage")
                 ->join("users", "users.userID", "=", "courseAssessmentLog.userID")
                 ->where("courseID", "=", $courseID)->where("companyID", "=", $companyID)->get();
+
+                if (count($candidateScore) > 0) {
+                
+                    if (($candidateScore[0]->candidateScore > 0) && ($candidateScore[0]->candidateScore <= 49)) {
+                        $course->averageRange = '0%-49%';
+                    }elseif (($candidateScore[0]->candidateScore >= 50) && ($candidateScore[0]->candidateScore <= 74)) {
+                        $course->averageRange = '50%-74%';
+                    }elseif (($candidateScore[0]->candidateScore >= 75) && ($candidateScore[0]->candidateScore <= 89)) {
+                        $course->averageRange= '75%-89%';
+                    }elseif ($candidateScore[0]->candidateScore >= 90) {
+                        $course->averageRange = '90%+';
+                    }
+                } else 
+                    $course->averageRange = null;
 
                 $course->candidateSummary = [$candidateScore[0], $averageScore[0]];
             }
@@ -252,8 +265,17 @@ class ReportingController extends Controller
                     }
                         
                     $user->moduleProgress=$moduleProgress;
-                    $user->score = $queryForCompleted[0]->score  ?? $user->score = 0;
                     $user->status = $queryForCompleted[0]->status  ?? $user->status = 'pending';
+                    $user->score = $queryForCompleted[0]->score  ?? $user->score = 0;
+                    if (($user->score > 0) && ($user->score <= 49)) {
+                        $user->averageRange = '0%-49%';
+                    }elseif (($user->score >= 50) && ($user->score <= 74)) {
+                        $user->averageRange = '50%-74%';
+                    }elseif (($user->score >= 75) && ($user->score <= 89)) {
+                        $user->averageRange= '75%-89%';
+                    }elseif ($user->score >= 90) {
+                        $user->averageRange = '90%+';
+                    }
                 }    
                 
                 $courseUserDetails = array("noOfModules"=>count($modules), "enrolled" => count($enrolled), "completed" => $countCompleted, "notCompleted" => (count($enrolled) - $countCompleted), "passed" => $countPassed, "failed"=>$countFailed);

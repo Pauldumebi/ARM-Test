@@ -225,8 +225,17 @@ class CoursesController extends Controller
             ->join("course", "module.courseID", "=", "course.courseID")
             ->selectRaw("count(distinct(courseTrackerLog.moduleID)) as modules_completed")->where("userID", "=", $userID)->where("course.courseID", "=", $courseID)->get();
 
+            $getAssessmentStatus = DB::table("courseAssessmentLog")->where("courseID", "=", $courseID)->where("userID", "=", $userID)->orderBy("score", "desc")->get();
+
+            if (count($getAssessmentStatus) > 0) 
+                $row->assessmentStatus=$getAssessmentStatus[0]->status;
+            else 
+                $row->assessmentStatus="null";
+
+           
             $row->modules_completed=$query2[0]->modules_completed;
         }
+
         if (count($query) > 0) {
             $roleName = DB::table("users")->join("groupRole", "users.groupRoleId", "=", "groupRole.groupRoleId")->where("token", "=", $token)->get();
             $role = $roleName[0]->roleName;
@@ -236,7 +245,7 @@ class CoursesController extends Controller
             $roleName = DB::table("users")->join("groupRole", "users.groupRoleId", "=", "groupRole.groupRoleId")->where("token", "=", $token)->get();
             $role = $roleName[0]->roleName;
             $enrolledCourses = DB::table("course")->where("courseCategory", "=", $role)->limit(4)->get();
-            return response()->json(["success" => true, "firstLogin"=> $firstLogin, "enrolledCourses" => [], "recommendedCourses" => $enrolledCourses, ]);
+            return response()->json(["success" => true, "firstLogin"=> $firstLogin, "enrolledCourses" => [], "recommendedCourses" => $enrolledCourses]);
         }
     }
   
@@ -278,7 +287,7 @@ class CoursesController extends Controller
 
                 foreach ($modules as $module) {
                     $moduleID = $module->moduleID;
-                    $modulesCompleted = DB::table("courseTrackerLog")->where("moduleID", "=", $moduleID)->where("status", "=", 'complete')->where("userID", "=", $userID)->get();
+                    $modulesCompleted = DB::table("courseTrackerLog")->where("moduleID", "=", $moduleID)->where("userID", "=", $userID)->get();
 
                     if (count($modulesCompleted) > 0) {
                         $module->status=$modulesCompleted[0]->status;
@@ -367,11 +376,25 @@ class CoursesController extends Controller
         $status = $req->status;
         $userID = $this->getId("users", "token", $token, "userID");
         if ($userID) {
-            if ($score) {
-                $courseID = $this->getId("module", "moduleID", $moduleID, "courseID");
-                DB::table("courseAssessmentLog")->insert(["userID" => $userID, "courseID" => $courseID, "score" => $score, "status" => $status ]);
-            } else
-                DB::table("courseTrackerLog")->insert(["userID" => $userID, "moduleID" => $moduleID]);
+            // if ($score) {
+            //     $courseID = $this->getId("module", "moduleID", $moduleID, "courseID");
+            //     DB::table("courseAssessmentLog")->insert(["userID" => $userID, "courseID" => $courseID, "score" => $score, "status" => $status ]);
+            // } else
+                DB::table("courseTrackerLog")->insert(["userID" => $userID,"score" => $score, "status"=> $status,  "moduleID" => $moduleID]);
+            return response()->json(["success" => true, "message" => "successfully inserted"]);
+        } else
+            return response()->json(["success" => false, "message" => "User not found"], 404);
+    }
+
+    public function insertAssessmentTracker (Request $req) {
+        $token = $req->token;
+        $moduleID = $req->moduleID;
+        $score = $req->score;
+        $status = $req->status;
+        $userID = $this->getId("users", "token", $token, "userID");
+        if ($userID) {
+            $courseID = $this->getId("module", "moduleID", $moduleID, "courseID");
+            DB::table("courseAssessmentLog")->insert(["userID" => $userID, "courseID" => $courseID, "score" => $score, "status" => $status ]);
             return response()->json(["success" => true, "message" => "successfully inserted"]);
         } else
             return response()->json(["success" => false, "message" => "User not found"], 404);

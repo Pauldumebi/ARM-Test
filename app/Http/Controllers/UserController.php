@@ -168,56 +168,66 @@ class UserController extends Controller
     public function bulkUpload(Request $request) {
         $token = $request->token;
         $companyID = $this->getCompanyID($token);
-        $upload = $request->file('upload-file');
-        $getPath = $upload->getRealPath();
+        $extension = $request->file('upload_file')->getClientOriginalExtension();
+        if ($extension == 'csv') {
+            $upload = $request->file('upload_file');
+            $getPath = $upload->getRealPath();
 
-        $file = fopen($getPath, 'r');
-        $headerLine = true;
-        $Errors = [];
+            $file = fopen($getPath, 'r');
+            $headerLine = true;
+            $Errors = [];
 
-        while (($columns = fgetcsv($file, 1000, ","))!== FALSE) {
-            if($headerLine) { $headerLine = false; }
-            
-            else {
-            
-                if ($columns[0] == "")
-                    continue;
-                $data =  $columns;
+            while (($columns = fgetcsv($file, 1000, ","))!== FALSE) {
+                if($headerLine) { $headerLine = false; }
+                
+                else {
+                
+                    if ($columns[0] == "")
+                        continue;
+                    $data =  $columns;
+                    foreach ($data as $key => $value) {
+                        $employeeID = $data[0];
+                        $userFirstName = $data[1];
+                        $userLastName = $data[2];
+                        $userEmail = $data[3];
+                        $userGender = $data[4];
+                        $userGrade = $data[5];
+                        $location = $data[6];
+                        $roleName = $data[7];
+                        $groupRole = DB::table("groupRole")->where("roleName", "=", $roleName)->get();
+                        //Get user groupRoleID for either Agent, Supervisor, or Manager
+                        count($groupRole) > 0 ? $groupRoleId = $groupRole[0]->groupRoleId : $groupRoleId = 1;
+                        $userToken = $this->RandomCodeGenerator(80);
+                    }
 
-                foreach ($data as $key => $value) {
-                    $employeeID = $data[0];
-                    $userFirstName = $data[1];
-                    $userLastName = $data[2];
-                    $userEmail = $data[3];
-                    $userGender = $data[4];
-                    $userGrade = $data[5];
-                    $location = $data[6];
-                    $userToken = $this->RandomCodeGenerator(80);
-                }
+                    if ($employeeID !== null && $userFirstName !== null  && $userFirstName !== null  && $userEmail !== null) {
+                        if (!DB::table('users')->where("userEmail", "=", $userEmail)->where("companyID", "=", $companyID)->exists()) {
+                            $email_suffix = explode("@", $userEmail)[1];
+                            $hash = password_hash($employeeID, PASSWORD_DEFAULT);
 
-                if ($employeeID && $userFirstName && $userFirstName && $userEmail) {
-                    if (!DB::table('usersCopy')->where("userEmail", "=", $userEmail)->exists()) {
-
-                        DB::table('usersCopy')->insert(["userFirstName" => $userFirstName, "userLastName" => $userLastName, "userEmail" => $userEmail, "userGender" => $userGender, "userGrade" => $userGrade,  "location" => $location, "companyID" => $companyID,  "employeeID" => $employeeID, "token" => $userToken]);
-
-                        var_dump($employeeID);
-                        var_dump($userFirstName);
-                        var_dump($userLastName);
-                        var_dump($userEmail);
-                        var_dump($userGender);
-                        var_dump($userGrade);
-                        var_dump($location);
-                        var_dump($companyID);
-                        var_dump($userToken);
-                        
-                        
-                    }else 
-                        array_push($Errors, "We found a duplicate for ".$userEmail);     
-                }else {
-                    array_push($Errors, "One or more fields missing for ".$userFirstName.' '.$userLastName);
+                            $query = DB::table("users")->join("company", "users.companyID", "=", "company.companyID")->select(["company.emailSuffix", "company.companyID"])->where("users.token", "=", $token)->where("users.userRoleID", "=", 1)->get();
+                            if ($query[0]->emailSuffix === $email_suffix) {
+                                DB::table('users')->insert(["userFirstName" => $userFirstName, "userLastName" => $userLastName, "userEmail" => $userEmail, "userGender" => $userGender, "userRoleID" => 2, "groupRoleId" => $groupRoleId, "userGrade" => $userGrade,  "location" => $location, "companyID" => $companyID, "userPassword" => $hash, "employeeID" => $employeeID, "token" => $userToken]);
+                                $success = true;
+                            } else {
+                                array_push($Errors, $userEmail." not company Email ");   
+                            }
+                        }else 
+                            array_push($Errors, "We found a duplicate for ".$userEmail);     
+                    }else {
+                        array_push($Errors, "One or more fields missing for ".$userFirstName.' '.$userLastName);
+                    }
                 }
             }
-        }
-        return response()->json(["success" => true, "message" => "successful", "error" => $Errors]);
+
+            if ($Errors) {
+                return response()->json(["success" => true, "error" => $Errors]);
+            } elseif($success && $Errors) {
+                return response()->json(["success" => true, "message" => "successful", "error" => $Errors]);
+            } else
+                return response()->json(["success" => true, "message" => "successful"]);
+        } else 
+            return response()->json(["success" => true, "error" => "file format not supported"]);
+        
     }
 }
