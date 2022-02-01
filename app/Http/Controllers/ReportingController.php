@@ -96,15 +96,16 @@ class ReportingController extends Controller
             foreach ($queryForCandidate as $course) {
 
                 $courseID = $course->courseID;
-                
-                // $averageRange = DB::table("courseAssessmentLog")->join("users", "users.userID", "=", "courseAssessmentLog.userID")->where("courseAssessmentLog.userID", "=", $userID)->where("courseAssessmentLog.courseID", "=", $courseID)->where("companyID", "=", $companyID)->selectRaw("concat(min(score),'-',max(score)) as averageRange")->get();
 
                 $status = DB::table("courseAssessmentLog")->join("users", "users.userID", "=", "courseAssessmentLog.userID")->where("courseAssessmentLog.userID", "=", $userID)->where("courseAssessmentLog.courseID", "=", $courseID)->where("companyID", "=", $companyID)->select("status")->get();
 
                 $started = DB::table("courseTrackerLog")->join("module", "courseTrackerLog.moduleID", "=", "module.moduleID")
                 ->join("users", "users.userID", "=", "courseTrackerLog.userID")->join("course", "course.courseID", "=", "module.courseID")->where("courseTrackerLog.userID", "=", $userID)->where("course.courseID", "=", $courseID)->where("companyID", "=", $companyID)->selectRaw("distinct(courseTrackerLog.moduleID) as started")->get();
 
-                $moduleCompleted = count($started);
+                $getModuleCompletedCount = DB::table("courseTrackerLog")->join("module", "courseTrackerLog.moduleID", "=", "module.moduleID")
+                ->join("users", "users.userID", "=", "courseTrackerLog.userID")->join("course", "course.courseID", "=", "module.courseID")->where("courseTrackerLog.userID", "=", $userID)->where("course.courseID", "=", $courseID)->where("companyID", "=", $companyID)->where("status", "=", "pass")->selectRaw("distinct(courseTrackerLog.moduleID) as moduleID")->get();
+
+                $moduleCompleted = count($getModuleCompletedCount);
 
                 $getModuleCount = DB::table('module')->join("course", "course.courseID", "=", "module.courseID")->where("course.courseID", "=", $courseID)->where("type", "=", null)->select("moduleID", "moduleName", "course.courseID")->get();
                 $moduleCount = count($getModuleCount);
@@ -153,7 +154,7 @@ class ReportingController extends Controller
             $searchRequestVal = $req->searchRequest;
 
             if (strpos($searchRequestVal, ' ') !== false) {
-                var_dump($searchRequestVal);
+                // var_dump($searchRequestVal);
                 $searchRequest = explode(" ", $searchRequestVal);
                 $userFirstName = $searchRequest[0];
                 $userLastName = $searchRequest[1];
@@ -177,7 +178,7 @@ class ReportingController extends Controller
     public function courseView(Request $req)
     {
         $token = $req->token;
-        $courseID = $req->courseID;
+        // $courseID = $req->courseID;
         $userGender = $req->userGender;
         $location = $req->location;
         $roleName = $req->roleName;
@@ -189,11 +190,16 @@ class ReportingController extends Controller
         $users = DB::table("users")->where("token", "=", $token)->get();
         $companyID = $users[0]->companyID;
 
+        $allCourses = DB::table("courseEnrolment")->where("companyID", "=", $companyID)->get();
+        $courseID = $req->courseID ?? $allCourses[0]->courseID;
+
         if (DB::table("course")->where("courseID", "=", $courseID)->exists()) {
 
             if (DB::table("courseEnrolment")->where("courseEnrolment.courseID", "=", $courseID)->where("companyID", "=", $companyID)->exists()) {
 
                 $modules = DB::table("module")->where("courseID", "=", $courseID)->where("type", "=", null)->get();
+                $completionOnFirstAttempt = [];
+                $completionOnMultipleAttempt = [];
 
                 if ($userGender || $location || $userGrade || $roleName) {
                     $groupRoleID = null;
@@ -202,18 +208,20 @@ class ReportingController extends Controller
                         $groupRoleID = $queryForGroupRoleID[0]->groupRoleId;
                     }
                     $enrolled = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("courseEnrolment.courseID", "=", $courseID)->where("courseEnrolment.companyID", "=", $companyID)->where("groupRoleID", "like", "%" . $groupRoleID . "%")->where("userGrade", "like", "%" . $userGrade . "%")->where("location", "like", "%" . $location . "%")->where("userGender", "like", "%" . $userGender . "%")->get();
-
-                    $moduleCompleted = [];
+                    
                     foreach ($modules as $module) {
                         $moduleID = $module->moduleID;
-                        $getModuleCompletedCount = DB::table('courseTrackerLog')->selectRaw("courseTrackerLog.userID")
-                        ->join("users", "courseTrackerLog.userID", "=", "users.userID")
-                        ->join("module", "courseTrackerLog.moduleID", "=", "module.moduleID")
-                        ->where("users.companyID", "=", $companyID)
-                        ->where("courseID", "=", $courseID)->where("courseTrackerLog.moduleID", "=", $moduleID)
-                        ->where("groupRoleID", "like", "%" . $groupRoleID . "%")->where("userGrade", "like", "%" . $userGrade . "%")->where("location", "like", "%" . $location . "%")->where("userGender", "like", "%" . $userGender . "%")->groupBy("courseTrackerLog.userID")->get();
-                        $countModulesCompleted = count($getModuleCompletedCount);
-                        array_push($moduleCompleted, array("module".$moduleID."Total" => $countModulesCompleted));
+
+                        $getSingleModuleCompletedCount = DB::select("select courseTrackerLog.userID, COUNT(*) total_attempts FROM  courseTrackerLog join users on users.userID=courseTrackerLog.userID where companyID=$companyID and moduleID=$moduleID and status='pass' and groupRoleID like '%$groupRoleID%' and userGrade like '%$userGrade%' and location like '%$location%' and userGender like '%$userGender%' GROUP BY courseTrackerLog.userID HAVING COUNT(*) = 1");
+
+                        $getMultipleModuleCompletedCount = DB::select("select courseTrackerLog.userID, COUNT(*) total_attempts FROM  courseTrackerLog join users on users.userID=courseTrackerLog.userID where companyID=$companyID and moduleID=$moduleID and status='pass' and groupRoleID like '%$groupRoleID%' and userGrade like '%$userGrade%' and location like '%$location%' and userGender like '%$userGender%' GROUP BY courseTrackerLog.userID HAVING COUNT(*) > 1");
+
+                        count($getSingleModuleCompletedCount) > 0 ? $singleModuleCompletedCount=count($getSingleModuleCompletedCount) : $singleModuleCompletedCount=0;
+
+                        count($getMultipleModuleCompletedCount) > 0 ? $multipleModuleCompletedCount=count($getMultipleModuleCompletedCount) : $multipleModuleCompletedCount=0;
+
+                        array_push($completionOnFirstAttempt, $singleModuleCompletedCount);
+                        array_push($completionOnMultipleAttempt, $multipleModuleCompletedCount);
                     }
 
                     $users = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("courseEnrolment.companyID", "=", $companyID)->where("groupRoleID", "like", "%" . $groupRoleID . "%")->where("userGrade", "like", "%" . $userGrade . "%")->where("location", "like", "%" . $location . "%")->where("userGender", "like", "%" . $userGender . "%")->selectRaw("employeeID, concat(userFirstName,' ' ,userLastName) as usersName, users.userID")->skip($offset)->take($page_size)->get();
@@ -224,16 +232,19 @@ class ReportingController extends Controller
 
                     $enrolled = DB::table("courseEnrolment")->where("courseEnrolment.courseID", "=", $courseID)->where("companyID", "=", $companyID)->get();
 
-                    $moduleCompleted = [];
                     foreach ($modules as $module) {
                         $moduleID = $module->moduleID;
-                        $getModuleCompletedCount = DB::table('courseTrackerLog')->selectRaw("courseTrackerLog.userID")
-                        ->join("users", "courseTrackerLog.userID", "=", "users.userID")
-                        ->join("module", "courseTrackerLog.moduleID", "=", "module.moduleID")
-                        ->where("companyID", "=", $companyID)
-                        ->where("courseID", "=", $courseID)->where("courseTrackerLog.moduleID", "=", $moduleID)->groupBy("courseTrackerLog.userID")->get();
-                        $countModulesCompleted = count($getModuleCompletedCount);
-                        array_push($moduleCompleted, array("module".$moduleID."Total" => $countModulesCompleted));
+                        
+                        $getSingleModuleCompletedCount = DB::select("select courseTrackerLog.userID, COUNT(*) total_attempts FROM  courseTrackerLog join users on users.userID=courseTrackerLog.userID where companyID=$companyID and moduleID=$moduleID and status='pass' GROUP BY courseTrackerLog.userID HAVING COUNT(*) = 1");
+
+                        $getMultipleModuleCompletedCount = DB::select("select courseTrackerLog.userID, COUNT(*) total_attempts FROM  courseTrackerLog join users on users.userID=courseTrackerLog.userID where companyID=$companyID and moduleID=$moduleID and status='pass' GROUP BY courseTrackerLog.userID HAVING COUNT(*) > 1");
+
+                        count($getSingleModuleCompletedCount) > 0 ? $singleModuleCompletedCount=count($getSingleModuleCompletedCount) : $singleModuleCompletedCount=0;
+
+                        count($getMultipleModuleCompletedCount) > 0 ? $multipleModuleCompletedCount=count($getMultipleModuleCompletedCount) : $multipleModuleCompletedCount=0;
+
+                        array_push($completionOnFirstAttempt, $singleModuleCompletedCount);
+                        array_push($completionOnMultipleAttempt, $multipleModuleCompletedCount);
                     }
                     
                     $users = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("courseEnrolment.companyID", "=", $companyID)->selectRaw("employeeID, concat(userFirstName,' ' ,userLastName) as usersName, users.userID")->skip($offset)->take($page_size)->get();
@@ -245,11 +256,16 @@ class ReportingController extends Controller
                 $countCompleted = 0;
                 $countPassed = 0;
                 $countFailed = 0;
+                $i = 0;
+                $j = 0;
+                $k = 0;
+                $l = 0;
+
                 foreach ($users as $user) {
                     $userID = $user->userID;
                     $queryForCompleted = DB::table("courseAssessmentLog")->join("users", "courseAssessmentLog.userID", "=", "users.userID")->where("courseAssessmentLog.userID", "=", $userID)->where("courseID", "=", $courseID)->where("users.companyID", "=", $companyID)->selectRaw("score, status")->orderBy("score", "desc")->get();
 
-                    $getCompleted = DB::table("courseTrackerLog")->join("module", "courseTrackerLog.moduleID", "=", "module.moduleID")->join("course", "course.courseID", "=", "module.courseID")->join("users", "users.userID", "=", "courseTrackerLog.userID")->where("course.courseID", "=", $courseID)->where("users.companyID", "=", $companyID)->where("courseTrackerLog.userID", "=", $userID)->selectRaw("courseTrackerLog.moduleID")->groupBy("courseTrackerLog.moduleID")->get();
+                    $getCompleted = DB::table("courseTrackerLog")->join("module", "courseTrackerLog.moduleID", "=", "module.moduleID")->join("course", "course.courseID", "=", "module.courseID")->join("users", "users.userID", "=", "courseTrackerLog.userID")->where("course.courseID", "=", $courseID)->where("users.companyID", "=", $companyID)->where("status", "=", "pass")->where("courseTrackerLog.userID", "=", $userID)->selectRaw("courseTrackerLog.moduleID")->groupBy("courseTrackerLog.moduleID")->get();
 
                     $moduleProgress = count($getCompleted) . "/" . count($modules);
                     if (count($getCompleted) == count($modules)) {
@@ -267,24 +283,88 @@ class ReportingController extends Controller
                     $user->moduleProgress=$moduleProgress;
                     $user->status = $queryForCompleted[0]->status  ?? $user->status = 'pending';
                     $user->score = $queryForCompleted[0]->score  ?? $user->score = 0;
+
                     if (($user->score > 0) && ($user->score <= 49)) {
+                        $i++;
                         $user->averageRange = '0%-49%';
                     }elseif (($user->score >= 50) && ($user->score <= 74)) {
+                        $j++;
                         $user->averageRange = '50%-74%';
                     }elseif (($user->score >= 75) && ($user->score <= 89)) {
+                        $k++;
                         $user->averageRange= '75%-89%';
                     }elseif ($user->score >= 90) {
+                        $l++;
                         $user->averageRange = '90%+';
                     }
                 }    
-                
+
+                $courseAssessmentRange = array("0-49", "50-74", "75-89", "90");
+                $courseAssessmentValues = array($i, $j, $k, $l);
                 $courseUserDetails = array("noOfModules"=>count($modules), "enrolled" => count($enrolled), "completed" => $countCompleted, "notCompleted" => (count($enrolled) - $countCompleted), "passed" => $countPassed, "failed"=>$countFailed);
 
-                return response()->json(["success" => true, "courseDetails" => $courseUserDetails, "courseEngagementChart" => $moduleCompleted, "totalUsers" => $totalUsers,  "courseTableDetails" => $users]);
+                return response()->json(["success" => true, "courseDetails" => $courseUserDetails, "courseEngagementChart" => [ "first_attempt"=>$completionOnFirstAttempt, "multiple_attempt"=>$completionOnMultipleAttempt], "courseAssessment"=> ["courseAssessmentRange"=> $courseAssessmentRange, "courseAssessmentValues"=> $courseAssessmentValues], "totalUsers" => $totalUsers,  "courseTableDetails" => $users]);
             }else 
                 return response()->json(["success" => false, "message" => "Course not assigned to company"], 401);
         } else 
             return response()->json(["success" => false, "message" => "Invalid Course ID"], 400);
-        
+    }
+
+    public function courseModuleUsers(Request $req)
+    {
+        $token = $req->token;
+        $moduleID = $req->moduleID;
+        $userGender = $req->userGender;
+        $location = $req->location;
+        $roleName = $req->roleName;
+        $userGrade = $req->userGrade;
+        $page_number = $req->page_number ?? 1;
+        $page_size = $req->page_size ?? 100;
+        $offset = ($page_number - 1) * $page_size;
+
+        $queryForCourseId = DB::table("module")->where("moduleID", "=", $moduleID)->select("courseID")->get();
+        if (count($queryForCourseId) < 0) {
+            return response()->json(["success" => false, "message" => "Module does not exist"], 401);
+        }
+        $queryForCompanyId = DB::table("users")->where("token", "=", $token)->select("companyID")->get();
+        if (count($queryForCompanyId) < 0) {
+            return response()->json(["success" => false, "message" => "User does not exist"], 401);
+        }
+
+        $courseID = $queryForCourseId[0]->courseID;
+        $companyID = $queryForCompanyId[0]->companyID;
+
+        if (DB::table("courseEnrolment")->where("courseEnrolment.courseID", "=", $courseID)->where("companyID", "=", $companyID)->exists()) {
+
+            if ($userGender || $location || $userGrade || $roleName) {
+                $groupRoleID = null;
+                if ($roleName) {
+                    $queryForGroupRoleID = DB::table("groupRole")->where("roleName", "=", $roleName)->get();
+                    $groupRoleID = $queryForGroupRoleID[0]->groupRoleId;
+                }
+
+                $users = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("courseEnrolment.companyID", "=", $companyID)->where("groupRoleID", "like", "%" . $groupRoleID . "%")->where("userGrade", "like", "%" . $userGrade . "%")->where("location", "like", "%" . $location . "%")->where("userGender", "like", "%" . $userGender . "%")->selectRaw("employeeID, concat(userFirstName,' ' ,userLastName) as usersName, users.userID")->skip($offset)->take($page_size)->get();
+
+                $totalUsers = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("courseEnrolment.companyID", "=", $companyID)->where("groupRoleID", "like", "%" . $groupRoleID . "%")->where("userGrade", "like", "%" . $userGrade . "%")->where("location", "like", "%" . $location . "%")->where("userGender", "like", "%" . $userGender . "%")->selectRaw("employeeID, concat(userFirstName,' ' ,userLastName) as usersName, users.userID")->count();
+                
+            } else {
+                $users = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("courseEnrolment.companyID", "=", $companyID)->selectRaw("employeeID, concat(userFirstName,' ' ,userLastName) as usersName, users.userID")->skip($offset)->take($page_size)->get();
+
+                $totalUsers = DB::table("courseEnrolment")->join("users", "courseEnrolment.userID", "=", "users.userID")->where("courseID", "=", $courseID)->where("courseEnrolment.companyID", "=", $companyID)->selectRaw("employeeID, concat(userFirstName,' ' ,userLastName) as usersName, users.userID")->count();
+
+            }
+
+            foreach ($users as $user) {
+                $userID = $user->userID;
+                $getModuleCompletedCount = DB::table('courseTrackerLog')->select(["courseTrackerLog.userID","moduleID", "userID", "score", "status", "created_at"])->where("moduleID", "=", $moduleID)->where("userID", "=", $userID)->orderBy("score", "desc")->get();
+
+                count($getModuleCompletedCount) > 0 ? $user->attempts=count($getModuleCompletedCount) : $user->attempts=null;
+                count($getModuleCompletedCount) > 0 ? $user->maxScore=$getModuleCompletedCount[0]->score : $user->maxScore=null;
+                count($getModuleCompletedCount) > 0 ? $user->status=$getModuleCompletedCount[0]->status : $user->status=null;
+            }
+
+            return response()->json(["success" => true,  "courseModuleUsers" => $users, "totalUsers" => $totalUsers]);
+        } else 
+        return response()->json(["success" => false, "message" => "Course not assigned to company"], 401);
     }
 }
