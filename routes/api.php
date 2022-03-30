@@ -1,15 +1,8 @@
 <?php
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CoursesController;
-use App\Http\Controllers\GroupController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ReportingController;
-use App\Http\Controllers\SiteAdminController;
-use App\Http\Controllers\UserController;
-// use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ClientRegistrationController;
+use App\Http\Controllers\EmployerRegistrationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,98 +21,15 @@ use Illuminate\Support\Facades\Route;
 
 // Auth Controller Endpoints
 Route::prefix("v1")->group(function () {
-    Route::post("/signup", [AuthController::class, "signup"]);
-    Route::post("/login", [AuthController::class, "login"]);
-    Route::get("/verifyemail/{token}", [AuthController::class, "verifyEmail"]);
-    Route::post("/forgot-password", [AuthController::class, "forgotPassword"]);
-    Route::post("/update-forgot-password", [AuthController::class, "updateForgotPassword"]);
-});
+    Route::post("/client/register", [EmployerRegistrationController::class, "Register"]);
+    Route::post("/client/validate-otp", [EmployerRegistrationController::class, "OtpValidator"]);
+    Route::post("/client/get/{client_id}", [EmployerRegistrationController::class, "getSingleClient"]);
+    Route::post("/client/get", [EmployerRegistrationController::class, "getAllClient"]);
+    Route::post("/client/delete/{client_id}", [EmployerRegistrationController::class, "deleteSingleClient"]);
 
-// User Controller Endpoints
-Route::prefix("v1")->middleware("isAdmin")->group(function () {
-    Route::post("/user", [UserController::class, "createCompanyUser"]);
-    Route::put("/edit-user", [UserController::class, "editCompanyUser"]);
-    Route::delete("/delete-user", [UserController::class, "deleteCompanyUser"]);
-    Route::post("/companyusers", [UserController::class, "getCompanyUsers"]);
-    Route::post("/company-users-search", [UserController::class, "companyUserSearch"]);
-    Route::post("/bulk-upload", [UserController::class, "bulkUpload"]);
-});
-
-// Course Controller Endpoints
-Route::prefix("v1")->group(function () {
-    Route::get("/course", [CoursesController::class, "getCourses"]);
-    Route::post("/course-enrollment", [CoursesController::class, "enrolToCourse"]);
-    Route::delete("/course-enrollment", [CoursesController::class, "unEnrolFromCourse"]);
-    Route::post("/company-enrollment", [CoursesController::class, "enrolCompanyToCourse"]);
-    Route::post("/enrolled-courses", [CoursesController::class, "getEnrolledCourses"]);
-    Route::post("/enrolled-course-users", [CoursesController::class, "getEnrolledCourseUsers"]);
-    Route::post("/modules-topics", [CoursesController::class, "getCourseModuleTopics"]);
-    Route::post("/modules-loggedIn", [CoursesController::class, "getCourseModulesForLoggedInUsers"]);
-    Route::post("/course-seats", [CoursesController::class, "getCourseSeats"]);
-    Route::post("/assignment-courses", [CoursesController::class, "getCoursesAssignment"]);
-    Route::post("/course-trackerLog", [CoursesController::class, "getCourseTrackerLog"]);
-    Route::post("/course-progress", [CoursesController::class, "insertCourseTracker"]);
-    Route::post("/assessment-progress", [CoursesController::class, "insertAssessmentTracker"]);
-    Route::get("/course-tracker/{token}", [CoursesController::class, "courseTrackerLog"]);
-});
-
-// Group Controller Endpoints
-Route::prefix("v1")->group(function () {
-    Route::post("/group", [GroupController::class, "createGroup"]);
-    Route::put("/group", [GroupController::class, "editGroup"]);
-    Route::delete("/group", [GroupController::class, "removeGroup"]);
-    Route::get("/groups-company/{token}", [GroupController::class, "fetchCompanyGroup"]);
-    Route::post("/group-course", [GroupController::class, "assignCourse"]);
-    Route::delete("/group-course", [GroupController::class, "unassignCourse"]);
-    Route::post("/courses-group", [GroupController::class, "fetchGroupCourse"]);
-    Route::post("/group-user", [GroupController::class, "addUser"]);
-    Route::delete("/group-user", [GroupController::class, "removeUser"]);
-    Route::post("/users-group", [GroupController::class, "fetchGroupUser"]);
-});
-
-// Profile Page Controller Endpoints
-Route::prefix("v1")->group(function () {
-    Route::get("/profile/{token}", [ProfileController::class, "getUserDetails"]);
-    Route::post("/profile/{token}", [ProfileController::class, "updateUserDetails"]);
-    Route::post("/company-profile/{token}", [ProfileController::class, "updateCompanyDetails"]);
-    Route::post("/password/{token}", [ProfileController::class, "updatePassword"]);
-});
-
-// Order Page Controller Endpoints
-Route::prefix("v1")->group(function () {
-    Route::get("/orders/{token}", [OrderController::class, "getOrders"]);
-    Route::post("/orders", [OrderController::class, "checkoutOrders"])->middleware("isAdmin");
-});
-
-// Site Admin Page Controller Endpoints
-Route::prefix("v1")->middleware("isSiteAdmin")->group(function () {
-    Route::post("/registered-companies", [SiteAdminController::class, "getCompanies"]);
-    Route::post("/registered-users", [SiteAdminController::class, "getUsers"]);
-    Route::put("/admin-course", [SiteAdminController::class, "editCourse"]);
-    Route::delete("/admin-company", [SiteAdminController::class, "deleteCompany"]);
-    Route::post("/admin-course", [SiteAdminController::class, "createCourse"]);
-    Route::delete("/admin-course", [SiteAdminController::class, "deleteCourse"]);
-    Route::put("/admin-company", [SiteAdminController::class, "editCompany"]);
-    Route::post("/admin-publish", [SiteAdminController::class, "publish"]);
-    Route::post("/admin-module", [SiteAdminController::class, "addModule"]);
-    Route::put("/admin-module", [SiteAdminController::class, "editModule"]);
-    Route::delete("/admin-module", [SiteAdminController::class, "deleteModule"]);
-    Route::post("/admin-bundle", [SiteAdminController::class, "addBundle"]);
-    Route::put("/admin-bundle", [SiteAdminController::class, "editBundle"]);
-    Route::delete("/admin-bundle", [SiteAdminController::class, "deleteBundle"]);
-    Route::post("/admin-order", [SiteAdminController::class, "getOrders"]);
-    Route::put("/admin-order", [SiteAdminController::class, "editOrderStatus"]);
-    // Route::post("/admin-topic", [SiteAdminController::class, "addTopic"]);
-    Route::post("/test-upload", [SiteAdminController::class, "testFileUpload"])->withoutMiddleware("isSiteAdmin");
-    Route::post("/test-folderupload", [SiteAdminController::class, "testFolderUpload"])->withoutMiddleware("isSiteAdmin");
-});
-
-//Reporting Controller
-Route::prefix("v1")->middleware("isAdmin")->group(function () {
-    Route::post("/all-courses", [ReportingController::class, "allCourses"]);
-    Route::post("/filters", [ReportingController::class, "filterParams"]);
-    Route::post("/module-users", [ReportingController::class, "courseModuleUsers"]);
-    Route::post("/candidate-table", [ReportingController::class, "candidateTable"]);
-    Route::get("/search-candidate", [ReportingController::class, "searchCandidate"]);
-    Route::post("/course-view",[ReportingController::class, "courseView"]);
+    Route::post("/employer/register", [ClientRegistrationController::class, "Register"]);
+    Route::post("/employer/validate-otp", [ClientRegistrationController::class, "OtpValidator"]);
+    Route::post("/employer/get/{client_id}", [ClientRegistrationController::class, "getSingleClient"]);
+    Route::post("/employer/get", [ClientRegistrationController::class, "getAllClient"]);
+    Route::post("/employer/delete/{client_id}", [ClientRegistrationController::class, "deleteSingleClient"]);
 });

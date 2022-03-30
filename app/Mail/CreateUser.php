@@ -29,7 +29,7 @@ class CreateUser extends Mailable
      */
     public function build()
     {
-        return $this->subject('Mail from CCLearning Platform')
+        return $this->subject('Mail from Arm Pension')
             ->view('createUser');
     }
 }

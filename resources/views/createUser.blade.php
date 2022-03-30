@@ -135,34 +135,8 @@
                     <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;">
                       <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Hi {{ $details['name'] }},</p>
 
-                      <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">An account has just been created for you on the<a href="{{ $details['login'] }}" target="_blank" style="display: inline-block; color: #ffffff; background-color: #3498db; border: solid 1px #3498db; border-radius: 5px; box-sizing: border-box; cursor: pointer; text-decoration: none; font-size: 14px; font-weight: bold; padding: 12px 25px; text-transform: capitalize; border-color: #3498db;">Service School House.</a></p>
-                      <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Your initial password: {{ $details['password'] }}</p>
-                      <table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; box-sizing: border-box;">
-                        <tbody>
-                          <tr>
-                            <td align="left" style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;">
-                              <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: auto;">
-                                <tbody>
-                                  <tr>
-                                    <div style="text-align: center; display: flex;">
-                                      <td style="font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #3498db; border-radius: 5px; text-align: center;"> <a href="{{ $details['login'] }}" target="_blank" style="display: inline-block; color: #ffffff; background-color: #3498db; border: solid 1px #3498db; border-radius: 5px; box-sizing: border-box; cursor: pointer; text-decoration: none; font-size: 14px; font-weight: bold; padding: 12px 25px; text-transform: capitalize; border-color: #3498db;">Check out course</a> </td>
-                                    </div>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                      <div style="text-align: center;">
-                        <span class="apple-link" style="text-align: center;"><a href="https://twitter.com/nimdee2" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://learningplatform.sandbox.9ijakids.com//laravel/public/images/facebook-img.png" alt=""></a></span>
-
-                        <span class="apple-link" style="text-align: center;"><a href="http://9ijakids.com" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://learningplatform.sandbox.9ijakids.com//laravel/public/images/Instagram.png" alt=""></a></span>
-
-                        <span class="apple-link" style="text-align: center;"><a href="http://9ijakids.com" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://learningplatform.sandbox.9ijakids.com//laravel/public/images/Linkedin.png" alt=""></a></span>
-
-                        <span class="apple-link" style="text-align: center;"><a href="https://api.whatsapp.com/send/?phone=2349033854783&text&app_absent=0" target="blank" style="text-decoration: underline; text-align: center; width: 1.8rem;"><img style="width: 1.5rem;" src="https://learningplatform.sandbox.9ijakids.com//laravel/public/images/whatsapp.png" alt=""></a></span>
-                      </div>
+                      <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Your one tiem password is: {{ $details['otp'] }}</p>
+                      
                     </td>
                   </tr>
                 </table>
